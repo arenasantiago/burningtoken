@@ -1,0 +1,71 @@
+import { mutation, query } from "./_generated/server";
+import { v } from "convex/values";
+
+// Generar código legible estilo "HYPE-742"
+function generateRoomCode(): string {
+  const num = Math.floor(100 + Math.random() * 900);
+  return `HYPE-${num}`;
+}
+
+export const create = mutation({
+  args: {
+    title: v.string(),
+    hostUserId: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const code = generateRoomCode();
+    const roomId = await ctx.db.insert("rooms", {
+      code,
+      title: args.title,
+      hostUserId: args.hostUserId,
+      status: "lobby",
+      createdAt: Date.now(),
+    });
+    return { roomId, code };
+  },
+});
+
+export const getByCode = query({
+  args: { code: v.string() },
+  handler: async (ctx, args) => {
+    return await ctx.db
+      .query("rooms")
+      .withIndex("by_code", (q) => q.eq("code", args.code.toUpperCase().trim()))
+      .first();
+  },
+});
+
+export const get = query({
+  args: { roomId: v.id("rooms") },
+  handler: async (ctx, args) => {
+    return await ctx.db.get(args.roomId);
+  },
+});
+
+export const updateStatus = mutation({
+  args: {
+    roomId: v.id("rooms"),
+    status: v.union(
+      v.literal("lobby"),
+      v.literal("voting"),
+      v.literal("auditing"),
+      v.literal("verdict")
+    ),
+  },
+  handler: async (ctx, args) => {
+    await ctx.db.patch(args.roomId, { status: args.status });
+  },
+});
+
+export const setActiveClaim = mutation({
+  args: {
+    roomId: v.id("rooms"),
+    claimId: v.id("claims"),
+  },
+  handler: async (ctx, args) => {
+    await ctx.db.patch(args.roomId, {
+      activeClaimId: args.claimId,
+      status: "voting",
+    });
+  },
+});

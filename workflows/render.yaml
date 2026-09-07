@@ -1,0 +1,15 @@
+services:
+  - type: worker
+    name: truth-tribunal-auditor-worker
+    runtime: node
+    buildCommand: npm install
+    startCommand: node --loader ts-node/esm workflows/auditor_workflow.ts
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: LINKUP_API_KEY
+        sync: false
+      - key: NEBIUS_API_KEY
+        sync: false
+      - key: CONVEX_URL
+        sync: false
