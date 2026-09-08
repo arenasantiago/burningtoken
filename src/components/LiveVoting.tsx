@@ -1,5 +1,5 @@
 import React from "react";
-import { Flame, CheckCircle2, Play, Users, BarChart3 } from "lucide-react";
+import { Flame, CheckCircle2, Play, Users, Clock, Loader2 } from "lucide-react";
 
 interface LiveVotingProps {
   claimContent: string;
@@ -120,18 +120,28 @@ export const LiveVoting: React.FC<LiveVotingProps> = ({
         </div>
       </div>
 
-      {/* Disparar Investigación con Render Workflows */}
+      {/* Sección Host vs Invitado */}
       <div className="pt-4 border-t border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4">
         <div className="text-xs text-slate-400 text-center sm:text-left">
-          Al iniciar, se despacha un trabajo resiliente en **Render Workflows** que ejecutará **Linkup** y **Nebius Token Factory**.
+          {isHost
+            ? "Eres el anfitrión de la sala. Cuando la votación termine, despliega la auditoría."
+            : "Estás participando como invitado. Tus votos se sincronizan al instante en la pantalla del host."}
         </div>
-        <button
-          onClick={onLaunchInvestigation}
-          className="w-full sm:w-auto bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold px-6 py-3 rounded-lg flex items-center justify-center space-x-2 shadow-lg shadow-purple-500/25 transition transform active:scale-95"
-        >
-          <Play className="w-4 h-4 fill-white" />
-          <span>Desplegar Auditoría Autónoma</span>
-        </button>
+
+        {isHost ? (
+          <button
+            onClick={onLaunchInvestigation}
+            className="w-full sm:w-auto bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold px-6 py-3 rounded-lg flex items-center justify-center space-x-2 shadow-lg shadow-purple-500/25 transition transform active:scale-95"
+          >
+            <Play className="w-4 h-4 fill-white" />
+            <span>Desplegar Auditoría Autónoma</span>
+          </button>
+        ) : (
+          <div className="flex items-center space-x-2 bg-purple-950/40 border border-purple-800/60 text-purple-300 px-4 py-3 rounded-lg text-xs font-mono">
+            <Loader2 className="w-4 h-4 animate-spin text-purple-400" />
+            <span>Esperando a que el Host inicie la auditoría...</span>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -41,7 +41,11 @@ export const RoomLobby: React.FC<RoomLobbyProps> = ({
   const handleJoin = (e: React.FormEvent) => {
     e.preventDefault();
     if (!joinCode.trim()) return;
-    onJoinRoom(joinCode);
+    let code = joinCode.trim().toUpperCase();
+    if (!code.startsWith("HYPE-") && /^\d+$/.test(code)) {
+      code = `HYPE-${code}`;
+    }
+    onJoinRoom(code);
   };
 
   return (

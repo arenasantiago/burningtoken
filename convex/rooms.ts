@@ -7,6 +7,38 @@ function generateRoomCode(): string {
   return `HYPE-${num}`;
 }
 
+// Creación atómica de sala con su claim inicial
+export const createWithClaim = mutation({
+  args: {
+    title: v.string(),
+    hostUserId: v.string(),
+    claimText: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const code = generateRoomCode();
+    const roomId = await ctx.db.insert("rooms", {
+      code,
+      title: args.title,
+      hostUserId: args.hostUserId,
+      status: "voting",
+      createdAt: Date.now(),
+    });
+
+    const claimId = await ctx.db.insert("claims", {
+      roomId,
+      authorName: "Host",
+      content: args.claimText,
+      createdAt: Date.now(),
+    });
+
+    await ctx.db.patch(roomId, {
+      activeClaimId: claimId,
+    });
+
+    return { roomId, code, claimId };
+  },
+});
+
 export const create = mutation({
   args: {
     title: v.string(),
@@ -28,9 +60,13 @@ export const create = mutation({
 export const getByCode = query({
   args: { code: v.string() },
   handler: async (ctx, args) => {
+    let clean = args.code.toUpperCase().trim();
+    if (!clean.startsWith("HYPE-") && /^\d+$/.test(clean)) {
+      clean = `HYPE-${clean}`;
+    }
     return await ctx.db
       .query("rooms")
-      .withIndex("by_code", (q) => q.eq("code", args.code.toUpperCase().trim()))
+      .withIndex("by_code", (q) => q.eq("code", clean))
       .first();
   },
 });

@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useQuery, useMutation, useAction } from "convex/react";
 import { api } from "../convex/_generated/api";
-import { Id } from "../convex/_generated/dataModel";
 import { Header } from "./components/Header";
 import { RoomLobby } from "./components/RoomLobby";
 import { LiveVoting } from "./components/LiveVoting";
@@ -11,6 +10,7 @@ import { VerdictReport } from "./components/VerdictReport";
 import { ProPaywallModal } from "./components/ProPaywallModal";
 import { useAudioTribunal } from "./hooks/useAudioTribunal";
 import { useRevenueCat } from "./hooks/useRevenueCat";
+import { Loader2, AlertTriangle, RefreshCw } from "lucide-react";
 
 function getOrCreateVoterId(): string {
   let id = sessionStorage.getItem("tribunal_voter_id");
@@ -38,7 +38,11 @@ export function App() {
     const params = new URLSearchParams(window.location.search);
     const roomParam = params.get("room");
     if (roomParam) {
-      setActiveRoomCode(roomParam.toUpperCase().trim());
+      let clean = roomParam.toUpperCase().trim();
+      if (!clean.startsWith("HYPE-") && /^\d+$/.test(clean)) {
+        clean = `HYPE-${clean}`;
+      }
+      setActiveRoomCode(clean);
     }
   }, []);
 
@@ -76,8 +80,7 @@ export function App() {
   const proStatus = useQuery(api.entitlements.getStatus, { userId: voterId });
 
   // --- MUTACIONES Y ACCIONES DE CONVEX ---
-  const createRoomMutation = useMutation(api.rooms.create);
-  const createClaimMutation = useMutation(api.claims.create);
+  const createRoomWithClaimMutation = useMutation(api.rooms.createWithClaim);
   const updateRoomStatusMutation = useMutation(api.rooms.updateStatus);
   const castVoteMutation = useMutation(api.votes.cast);
   const startInvestigationMutation = useMutation(api.investigations.startOrGet);
@@ -86,35 +89,35 @@ export function App() {
   const revokeProAccessMutation = useMutation(api.entitlements.revokeProAccess);
   const executeFullAuditAction = useAction(api.actions.executeFullAudit);
 
+  // Determinar si el usuario actual es el Host de la sala
+  const isHost = room ? room.hostUserId === voterId : false;
+
   // Estado consolidado de suscripción Pro
   const hasProAccess = Boolean(proStatus?.hasProAccess || revenueCat.isPro);
 
-  // 1. Crear Sala y primer claim
+  // 1. Crear Sala y claim atómicamente
   const handleCreateRoom = async (title: string, claimText: string) => {
     try {
       audio.playGavel();
-      const res = await createRoomMutation({
+      const res = await createRoomWithClaimMutation({
         title,
         hostUserId: voterId,
-      });
-
-      // Crear y asociar el claim inicial
-      await createClaimMutation({
-        roomId: res.roomId,
-        authorName: "Host",
-        content: claimText,
+        claimText,
       });
 
       setActiveRoomCode(res.code);
       window.history.pushState({}, "", `?room=${res.code}`);
     } catch (err) {
-      console.error("Error creating room:", err);
+      console.error("Error creating room with claim:", err);
     }
   };
 
   // 2. Unirse a una sala existente
   const handleJoinRoom = (code: string) => {
-    const cleanCode = code.toUpperCase().trim();
+    let cleanCode = code.toUpperCase().trim();
+    if (!cleanCode.startsWith("HYPE-") && /^\d+$/.test(cleanCode)) {
+      cleanCode = `HYPE-${cleanCode}`;
+    }
     setActiveRoomCode(cleanCode);
     window.history.pushState({}, "", `?room=${cleanCode}`);
     audio.playVoteClick();
@@ -129,7 +132,7 @@ export function App() {
         claimId: room.activeClaimId,
         roomId: room._id,
         voterId,
-        voterName: `Votante ${voterId.slice(-4)}`,
+        voterName: isHost ? "Host" : `Invitado ${voterId.slice(-4)}`,
         choice,
       });
     } catch (err) {
@@ -210,9 +213,6 @@ export function App() {
     }
   };
 
-  // Resolver estado visible de la sala
-  const currentRoomStatus = room?.status || (activeRoomCode ? "voting" : "lobby");
-
   return (
     <div className="min-h-screen bg-tribunal-dark flex flex-col selection:bg-purple-600 selection:text-white">
       {/* Header global */}
@@ -233,30 +233,73 @@ export function App() {
           />
         )}
 
-        {/* Vista 2: Votación Multijugador en Tiempo Real */}
-        {activeRoomCode && currentRoomStatus === "voting" && (
-          <div className="space-y-6">
-            <LiveVoting
-              claimContent={activeClaim?.content || "Cargando afirmación de la sala..."}
-              authorName={activeClaim?.authorName || "Anónimo"}
-              counts={{
-                smoke: liveCounts?.smoke || 0,
-                legit: liveCounts?.legit || 0,
-                total: liveCounts?.total || 0,
-                smokePercentage: liveCounts?.smokePercentage || 50,
-                legitPercentage: liveCounts?.legitPercentage || 50,
-                recentVoters: liveCounts?.recentVoters || [],
+        {/* Estado de Carga de la Sala para Invitados */}
+        {activeRoomCode && room === undefined && (
+          <div className="flex flex-col items-center justify-center py-24 space-y-4">
+            <Loader2 className="w-10 h-10 text-purple-500 animate-spin" />
+            <p className="text-slate-300 font-mono text-sm">
+              Conectando con el Tribunal de la Verdad... Buscando sala {activeRoomCode}
+            </p>
+          </div>
+        )}
+
+        {/* Sala No Encontrada */}
+        {activeRoomCode && room === null && (
+          <div className="bg-tribunal-card border border-red-500/30 rounded-2xl max-w-md mx-auto p-6 text-center space-y-4 my-12 shadow-2xl">
+            <div className="p-3 bg-red-500/10 text-red-400 rounded-full w-fit mx-auto">
+              <AlertTriangle className="w-8 h-8" />
+            </div>
+            <h3 className="text-lg font-bold text-white">Sala no encontrada</h3>
+            <p className="text-xs text-slate-400 leading-relaxed">
+              No se encontró ninguna sesión activa con el código{" "}
+              <span className="text-purple-400 font-mono font-bold">{activeRoomCode}</span>.
+              Verifica el código e intenta nuevamente.
+            </p>
+            <button
+              onClick={() => {
+                setActiveRoomCode(null);
+                window.history.pushState({}, "", window.location.pathname);
               }}
-              myVoteChoice={myVote?.choice as "SMOKE" | "LEGIT" | undefined}
-              onCastVote={handleCastVote}
-              onLaunchInvestigation={handleLaunchInvestigation}
-              isHost={true}
-            />
+              className="w-full bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold py-2.5 rounded-lg transition"
+            >
+              Volver al Lobby
+            </button>
+          </div>
+        )}
+
+        {/* Vista 2: Votación Multijugador en Tiempo Real */}
+        {activeRoomCode && room && room.status === "voting" && (
+          <div className="space-y-6">
+            {activeClaim ? (
+              <LiveVoting
+                claimContent={activeClaim.content}
+                authorName={activeClaim.authorName}
+                counts={{
+                  smoke: liveCounts?.smoke || 0,
+                  legit: liveCounts?.legit || 0,
+                  total: liveCounts?.total || 0,
+                  smokePercentage: liveCounts?.smokePercentage || 50,
+                  legitPercentage: liveCounts?.legitPercentage || 50,
+                  recentVoters: liveCounts?.recentVoters || [],
+                }}
+                myVoteChoice={myVote?.choice as "SMOKE" | "LEGIT" | undefined}
+                onCastVote={handleCastVote}
+                onLaunchInvestigation={handleLaunchInvestigation}
+                isHost={isHost}
+              />
+            ) : (
+              <div className="flex flex-col items-center justify-center py-20 space-y-3">
+                <Loader2 className="w-8 h-8 text-purple-400 animate-spin" />
+                <span className="text-xs font-mono text-slate-400">
+                  Cargando afirmación sometida a juicio...
+                </span>
+              </div>
+            )}
           </div>
         )}
 
         {/* Vista 3: Orquestación Asíncrona (Render Workflows + Linkup Deep Research) */}
-        {activeRoomCode && (currentRoomStatus === "auditing" || isAuditingLocally) && (
+        {activeRoomCode && room && (room.status === "auditing" || isAuditingLocally) && (
           <div className="space-y-6">
             <WorkflowProgress
               currentStep={investigation?.currentStep || "extracting_claims"}
@@ -272,7 +315,7 @@ export function App() {
         )}
 
         {/* Vista 4: Veredicto Final y Métricas de Nebius Token Factory */}
-        {activeRoomCode && currentRoomStatus === "verdict" && (
+        {activeRoomCode && room && room.status === "verdict" && (
           <div className="space-y-8">
             <VerdictReport
               verdict={investigation?.verdict || "CERTIFIED_SMOKE"}
