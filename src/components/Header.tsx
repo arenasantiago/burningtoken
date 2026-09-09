@@ -6,6 +6,8 @@ interface HeaderProps {
   hasProAccess: boolean;
   onOpenPaywall: () => void;
   onPlayGavel: () => void;
+  nickname?: string;
+  onEditNickname?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -13,6 +15,8 @@ export const Header: React.FC<HeaderProps> = ({
   hasProAccess,
   onOpenPaywall,
   onPlayGavel,
+  nickname,
+  onEditNickname,
 }) => {
   const [copied, setCopied] = React.useState(false);
 
@@ -82,6 +86,18 @@ export const Header: React.FC<HeaderProps> = ({
                 {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
               </button>
             </div>
+          )}
+
+          {/* Nickname del Jurado */}
+          {nickname && (
+            <button
+              onClick={onEditNickname}
+              title="Tu nombre en el tribunal (haz clic para editar)"
+              className="hidden lg:flex items-center space-x-1.5 bg-slate-900 border border-slate-700/80 hover:border-purple-500/60 rounded-lg px-2.5 py-1 text-xs font-mono text-slate-300 transition"
+            >
+              <span className="text-purple-400">👤</span>
+              <span className="font-semibold max-w-[120px] truncate">{nickname}</span>
+            </button>
           )}
 
           {/* RevenueCat Pro Entitlement Status */}

@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useQuery, useMutation, useAction } from "convex/react";
 import { api } from "../convex/_generated/api";
 import { Header } from "./components/Header";
 import { RoomLobby } from "./components/RoomLobby";
+import { InRoomLobby } from "./components/InRoomLobby";
 import { LiveVoting } from "./components/LiveVoting";
 import { WorkflowProgress } from "./components/WorkflowProgress";
 import { EvidenceBoard } from "./components/EvidenceBoard";
@@ -32,6 +33,27 @@ export function App() {
   const [activeRoomCode, setActiveRoomCode] = useState<string | null>(null);
   const [isPaywallOpen, setIsPaywallOpen] = useState(false);
   const [isAuditingLocally, setIsAuditingLocally] = useState(false);
+  const [nickname, setNickname] = useState<string>(() => {
+    try {
+      return localStorage.getItem("truth_tribunal_nickname") || "";
+    } catch {
+      return "";
+    }
+  });
+
+  const handleUpdateNickname = (name: string) => {
+    const trimmed = name.trim();
+    setNickname(trimmed);
+    try {
+      if (trimmed) {
+        localStorage.setItem("truth_tribunal_nickname", trimmed);
+      } else {
+        localStorage.removeItem("truth_tribunal_nickname");
+      }
+    } catch {
+      // ignore
+    }
+  };
 
   // Detección de ?room=HYPE-XXX en la URL para multijugador entre navegadores
   useEffect(() => {
@@ -82,6 +104,8 @@ export function App() {
   // --- MUTACIONES Y ACCIONES DE CONVEX ---
   const createRoomWithClaimMutation = useMutation(api.rooms.createWithClaim);
   const updateRoomStatusMutation = useMutation(api.rooms.updateStatus);
+  const startNextClaimMutation = useMutation(api.rooms.startNextClaim);
+  const prepareNextClaimMutation = useMutation(api.rooms.prepareNextClaim);
   const castVoteMutation = useMutation(api.votes.cast);
   const startInvestigationMutation = useMutation(api.investigations.startOrGet);
   const triggerFailureMutation = useMutation(api.investigations.triggerSimulatedFailure);
@@ -89,8 +113,26 @@ export function App() {
   const revokeProAccessMutation = useMutation(api.entitlements.revokeProAccess);
   const executeFullAuditAction = useAction(api.actions.executeFullAudit);
 
-  // Determinar si el usuario actual es el Host de la sala
+  // Determinar si el usuario actual es el Host de la sala y su identidad
   const isHost = room ? room.hostUserId === voterId : false;
+  const effectiveUserName = nickname || (isHost ? "Host" : `Invitado ${voterId.slice(-4)}`);
+
+  // Sincronización reactiva del audio del veredicto para todos los participantes (Host e Invitados)
+  const playedVerdictKeyRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (investigation && investigation.currentStep === "completed" && investigation._id) {
+      const key = `${investigation._id}-${investigation.verdict}`;
+      if (playedVerdictKeyRef.current !== key) {
+        playedVerdictKeyRef.current = key;
+        if (investigation.verdict === "CERTIFIED_SMOKE") {
+          audio.playVerdictChime(true);
+          audio.playSmokeSiren();
+        } else if (investigation.verdict === "VERIFIED_LEGIT" || investigation.verdict === "PLAUSIBLE") {
+          audio.playVerdictChime(false);
+        }
+      }
+    }
+  }, [investigation?.currentStep, investigation?.verdict, investigation?._id, audio]);
 
   // Estado consolidado de suscripción Pro
   const hasProAccess = Boolean(proStatus?.hasProAccess || revenueCat.isPro);
@@ -136,12 +178,42 @@ export function App() {
         claimId: room.activeClaimId,
         roomId: room._id,
         voterId,
-        voterName: isHost ? "Host" : `Invitado ${voterId.slice(-4)}`,
+        voterName: effectiveUserName,
         choice,
       });
     } catch (err) {
       console.error("Error casting vote:", err);
     }
+  };
+
+  // Manejo del siguiente caso manteniendo la sala
+  const handleLaunchNextClaim = async (nextClaimText: string) => {
+    if (!room) return;
+    audio.playGavel();
+    try {
+      await startNextClaimMutation({
+        roomId: room._id,
+        claimText: nextClaimText,
+        authorName: effectiveUserName,
+      });
+    } catch (err) {
+      console.error("Error starting next claim:", err);
+    }
+  };
+
+  const handlePrepareNextClaim = async () => {
+    if (!room) return;
+    audio.playGavel();
+    try {
+      await prepareNextClaimMutation({ roomId: room._id });
+    } catch (err) {
+      console.error("Error preparing next claim:", err);
+    }
+  };
+
+  const handleLeaveRoom = () => {
+    setActiveRoomCode(null);
+    window.history.pushState({}, "", window.location.pathname);
   };
 
   // 4. Desplegar Auditoría Autónoma (Render Workflows + Linkup + Nebius)
@@ -228,6 +300,11 @@ export function App() {
         hasProAccess={hasProAccess}
         onOpenPaywall={() => setIsPaywallOpen(true)}
         onPlayGavel={audio.playGavel}
+        nickname={effectiveUserName}
+        onEditNickname={() => {
+          const newName = window.prompt("Ingresa tu apodo o nickname:", nickname);
+          if (newName !== null) handleUpdateNickname(newName);
+        }}
       />
 
       {/* Main Stage */}
@@ -272,6 +349,17 @@ export function App() {
               Volver al Lobby
             </button>
           </div>
+        )}
+
+        {/* Vista 1.5: Sala en espera / Preparación del siguiente caso (Multijugador persistente) */}
+        {activeRoomCode && room && room.status === "lobby" && (
+          <InRoomLobby
+            roomCode={room.code}
+            isHost={isHost}
+            nickname={effectiveUserName}
+            onUpdateNickname={handleUpdateNickname}
+            onLaunchNextClaim={handleLaunchNextClaim}
+          />
         )}
 
         {/* Vista 2: Votación Multijugador en Tiempo Real */}
@@ -336,13 +424,10 @@ export function App() {
               hasProAccess={hasProAccess}
               claimText={activeClaim?.content}
               onOpenPaywall={() => setIsPaywallOpen(true)}
-              onNewClaim={() => {
-                if (room) {
-                  updateRoomStatusMutation({ roomId: room._id, status: "lobby" });
-                }
-                setActiveRoomCode(null);
-                window.history.pushState({}, "", window.location.pathname);
-              }}
+              isHost={isHost}
+              onNewClaim={handlePrepareNextClaim}
+              onLeaveRoom={handleLeaveRoom}
+              onReauditClaim={handleLaunchNextClaim}
             />
             {liveEvidence && liveEvidence.length > 0 && (
               <EvidenceBoard evidenceList={liveEvidence} researchPlan={investigation?.researchPlan} />

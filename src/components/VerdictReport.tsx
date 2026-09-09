@@ -25,6 +25,8 @@ interface VerdictReportProps {
   hasProAccess: boolean;
   onOpenPaywall: () => void;
   onNewClaim: () => void;
+  onLeaveRoom?: () => void;
+  isHost?: boolean;
   claimText?: string;
   onReauditClaim?: (newClaimText: string) => void;
 }
@@ -41,6 +43,8 @@ export const VerdictReport: React.FC<VerdictReportProps> = ({
   hasProAccess,
   onOpenPaywall,
   onNewClaim,
+  onLeaveRoom,
+  isHost = true,
 }) => {
   const hasLiveAudit = auditSources?.initialSearch === "live"
     && auditSources.contrastSearch === "live"
@@ -271,55 +275,92 @@ export const VerdictReport: React.FC<VerdictReportProps> = ({
         </div>
       )}
 
-      {/* Bloque Pro / RevenueCat Paywall */}
-      <div className="border border-amber-500/30 bg-gradient-to-r from-amber-950/30 to-slate-950 rounded-xl p-5 flex flex-col sm:flex-row items-center justify-between gap-4">
-        <div className="space-y-1 text-center sm:text-left">
-          <div className="flex items-center justify-center sm:justify-start space-x-2">
-            <span className="text-amber-400 font-bold text-sm">
-              Dossier Pericial Pro para Fondos VC e Inversionistas
-            </span>
-            <span className="bg-amber-500/20 text-amber-300 text-[10px] font-mono px-2 py-0.5 rounded border border-amber-500/40">
-              REVENUECAT TEST STORE
-            </span>
+      {/* Bloque Pro / RevenueCat Paywall con +Fuentes y Generador de Prompts */}
+      <div className="border border-amber-500/40 bg-gradient-to-r from-amber-950/40 via-slate-950 to-amber-950/20 rounded-xl p-5 space-y-4">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div className="space-y-1 text-left">
+            <div className="flex items-center space-x-2">
+              <span className="text-amber-400 font-bold text-sm">
+                Dossier Pericial Pro para Fondos VC e Inversionistas
+              </span>
+              <span className="bg-amber-500/20 text-amber-300 text-[10px] font-mono px-2 py-0.5 rounded border border-amber-500/40">
+                PLAN PRO
+              </span>
+            </div>
+            <p className="text-xs text-slate-300 max-w-lg leading-relaxed">
+              {hasProAccess
+                ? "Suscripción Pro verificada. Tienes acceso al desglose exhaustivo de pruebas, matriz de riesgo de litigio y exportación pericial."
+                : "Desbloquea el análisis forense profundo: amplía a +10 fuentes de rastreo cruzado, patentes citadas y generador de contra-interrogatorios."}
+            </p>
           </div>
-          <p className="text-xs text-slate-400 max-w-lg">
-            {hasProAccess
-              ? "Acceso Pro verificado. Tu suscripción sandbox está activa. Puedes descargar y ver el análisis de riesgo profundo."
-              : "Desbloquea el desglose pericial de vulnerabilidades del claim, matriz de riesgo legal y exportación completa de pruebas."}
-          </p>
+
+          <button
+            onClick={onOpenPaywall}
+            className={`shrink-0 px-4 py-2.5 rounded-xl text-xs font-bold transition flex items-center space-x-2 shadow-lg ${
+              hasProAccess
+                ? "bg-amber-500/20 text-amber-300 border border-amber-500/50 hover:bg-amber-500/30"
+                : "bg-gradient-to-r from-amber-500 to-yellow-600 hover:from-amber-400 hover:to-yellow-500 text-slate-950 shadow-amber-500/20"
+            }`}
+          >
+            {hasProAccess ? (
+              <>
+                <ShieldCheck className="w-4 h-4 text-amber-400" />
+                <span>Ver Dossier VC Desbloqueado</span>
+              </>
+            ) : (
+              <>
+                <Lock className="w-4 h-4" />
+                <span>Desbloquear Funciones Pro</span>
+                <ArrowRight className="w-4 h-4" />
+              </>
+            )}
+          </button>
         </div>
 
-        <button
-          onClick={onOpenPaywall}
-          className={`shrink-0 px-4 py-2.5 rounded-lg text-xs font-bold transition flex items-center space-x-2 ${
-            hasProAccess
-              ? "bg-amber-500/20 text-amber-300 border border-amber-500/50 hover:bg-amber-500/30"
-              : "bg-gradient-to-r from-amber-500 to-yellow-600 hover:from-amber-400 hover:to-yellow-500 text-slate-950 shadow-lg shadow-amber-500/20"
-          }`}
-        >
-          {hasProAccess ? (
-            <>
-              <ShieldCheck className="w-4 h-4" />
-              <span>Ver Dossier VC Desbloqueado</span>
-            </>
-          ) : (
-            <>
-              <Lock className="w-4 h-4" />
-              <span>Desbloquear con Test Store</span>
-              <ArrowRight className="w-4 h-4" />
-            </>
-          )}
-        </button>
+        {/* Feature Pills Pro */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-2 border-t border-amber-500/20 text-xs font-mono text-slate-300">
+          <div className="flex items-center space-x-1.5 bg-slate-950/80 p-2 rounded-lg border border-amber-900/30">
+            <span className="text-amber-400">●</span>
+            <span className="text-[11px]">+10 Fuentes de Rastreo Cruzado</span>
+          </div>
+          <div className="flex items-center space-x-1.5 bg-slate-950/80 p-2 rounded-lg border border-amber-900/30">
+            <span className="text-amber-400">●</span>
+            <span className="text-[11px]">Generador Pericial de Prompts Pro</span>
+          </div>
+          <div className="flex items-center space-x-1.5 bg-slate-950/80 p-2 rounded-lg border border-amber-900/30">
+            <span className="text-amber-400">●</span>
+            <span className="text-[11px]">Matriz de Riesgo Due Diligence</span>
+          </div>
+        </div>
       </div>
 
-      {/* Botón Auditar otro claim */}
-      <div className="pt-2 text-center">
-        <button
-          onClick={onNewClaim}
-          className="text-xs text-slate-400 hover:text-white transition font-mono underline underline-offset-4"
-        >
-          ← Juzgar otra afirmación en esta misma sala
-        </button>
+      {/* Botón Auditar Siguiente Caso en la Sala */}
+      <div className="pt-2 flex flex-col sm:flex-row items-center justify-between gap-3 border-t border-slate-800">
+        <div>
+          {onLeaveRoom && (
+            <button
+              onClick={onLeaveRoom}
+              className="text-xs text-slate-500 hover:text-slate-300 transition font-mono underline underline-offset-4"
+            >
+              ← Salir al Lobby Principal
+            </button>
+          )}
+        </div>
+
+        {isHost ? (
+          <button
+            onClick={onNewClaim}
+            className="w-full sm:w-auto bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-600 hover:from-purple-500 hover:to-indigo-500 text-white font-extrabold px-6 py-3 rounded-xl flex items-center justify-center space-x-2 shadow-lg shadow-purple-600/30 transition transform hover:-translate-y-0.5 active:scale-95 text-xs font-mono"
+          >
+            <Scale className="w-4 h-4 text-purple-200" />
+            <span>Auditar Siguiente Caso en esta Sala</span>
+          </button>
+        ) : (
+          <div className="text-xs font-mono text-purple-300 bg-purple-950/40 border border-purple-800/40 px-4 py-2.5 rounded-xl flex items-center space-x-2">
+            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+            <span>Esperando a que el Host inicie el siguiente caso en esta sala...</span>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -178,44 +178,75 @@ export const LiveVoting: React.FC<LiveVotingProps> = ({
               </filter>
             </defs>
 
-            {/* Pista base (fondo apagado) */}
+            {/* Pista base graduada (fondo completo con gradiente siempre visible) */}
             <path
               d="M 48 130 A 82 82 0 0 1 212 130"
               fill="none"
-              stroke="#1e293b"
-              strokeWidth="14"
+              stroke="#0f172a"
+              strokeWidth="16"
               strokeLinecap="round"
             />
-
-            {/* Pista de color segmentada / marcas guía */}
             <path
               d="M 48 130 A 82 82 0 0 1 212 130"
               fill="none"
               stroke="url(#hypeGaugeGradient)"
-              strokeWidth="14"
+              strokeWidth="12"
               strokeLinecap="round"
-              strokeDasharray={arcLength}
-              strokeDashoffset={strokeOffset}
-              className="transition-all duration-700 ease-out"
-              opacity="0.95"
+              opacity="0.65"
+            />
+
+            {/* Pista activa con resplandor según el valor de humo */}
+            {smokePct > 0 && (
+              <path
+                d="M 48 130 A 82 82 0 0 1 212 130"
+                fill="none"
+                stroke="url(#hypeGaugeGradient)"
+                strokeWidth="14"
+                strokeLinecap="round"
+                strokeDasharray={arcLength}
+                strokeDashoffset={strokeOffset}
+                className="transition-all duration-700 ease-out"
+                filter={smokePct > 70 ? "url(#needleGlow)" : undefined}
+                opacity="1"
+              />
+            )}
+
+            {/* Marcador de punto 0% (Verde esmeralda activo si es bajo humo) */}
+            <circle
+              cx="48"
+              cy="130"
+              r={smokePct <= 25 ? "7" : "4"}
+              fill="#10b981"
+              className="transition-all duration-500"
+              filter={smokePct <= 25 ? "url(#needleGlow)" : undefined}
+            />
+
+            {/* Marcador de punto 100% (Rojo carmesí activo si es alto humo) */}
+            <circle
+              cx="212"
+              cy="130"
+              r={smokePct >= 75 ? "7" : "4"}
+              fill="#ef4444"
+              className="transition-all duration-500"
+              filter={smokePct >= 75 ? "url(#needleGlow)" : undefined}
             />
 
             {/* Ticks y Marcas de referencia (0%, 25%, 50%, 75%, 100%) */}
-            {/* 0% (Extremo izquierdo) */}
-            <line x1="48" y1="130" x2="38" y2="130" stroke="#10b981" strokeWidth="2" />
-            <text x="32" y="142" fill="#10b981" fontSize="9" fontFamily="monospace" textAnchor="middle" fontWeight="bold">
+            {/* 0% (Extremo izquierdo: Sólido) */}
+            <line x1="48" y1="130" x2="36" y2="130" stroke="#10b981" strokeWidth="2.5" />
+            <text x="30" y="142" fill="#10b981" fontSize="10" fontFamily="monospace" textAnchor="middle" fontWeight="bold">
               0%
             </text>
 
-            {/* 50% (Centro superior) */}
-            <line x1="130" y1="48" x2="130" y2="38" stroke="#f59e0b" strokeWidth="2" />
-            <text x="130" y="32" fill="#f59e0b" fontSize="9" fontFamily="monospace" textAnchor="middle" fontWeight="bold">
+            {/* 50% (Centro superior: Dividido) */}
+            <line x1="130" y1="48" x2="130" y2="36" stroke="#f59e0b" strokeWidth="2" />
+            <text x="130" y="30" fill="#f59e0b" fontSize="9" fontFamily="monospace" textAnchor="middle" fontWeight="bold">
               50%
             </text>
 
-            {/* 100% (Extremo derecho) */}
-            <line x1="212" y1="130" x2="222" y2="130" stroke="#ef4444" strokeWidth="2" />
-            <text x="228" y="142" fill="#ef4444" fontSize="9" fontFamily="monospace" textAnchor="middle" fontWeight="bold">
+            {/* 100% (Extremo derecho: Puro Humo) */}
+            <line x1="212" y1="130" x2="224" y2="130" stroke="#ef4444" strokeWidth="2.5" />
+            <text x="230" y="142" fill="#ef4444" fontSize="10" fontFamily="monospace" textAnchor="middle" fontWeight="bold">
               100%
             </text>
 
@@ -261,9 +292,21 @@ export const LiveVoting: React.FC<LiveVotingProps> = ({
                   : "text-emerald-400"
               }`}
             >
-              {counts.total === 0 ? "—" : `${smokePct}%`}
+              {counts.total === 0 ? "50/50" : `${smokePct}%`}
             </span>
-            <span className="text-xs uppercase font-mono text-slate-400">Índice de Humo</span>
+            <span className="text-xs uppercase font-mono text-slate-400">
+              {counts.total === 0 ? "Sin votos aún" : "Índice de Humo"}
+            </span>
+          </div>
+
+          <div className="flex items-center space-x-3 text-xs font-mono">
+            <span className="text-emerald-400 font-semibold flex items-center space-x-1">
+              <span>● {counts.total === 0 ? 50 : legitPct}% Sólido</span>
+            </span>
+            <span className="text-slate-600">|</span>
+            <span className="text-red-400 font-semibold flex items-center space-x-1">
+              <span>● {counts.total === 0 ? 50 : smokePct}% Humo</span>
+            </span>
           </div>
 
           {/* Badge dinámico de veredicto popular */}

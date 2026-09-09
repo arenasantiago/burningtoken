@@ -105,3 +105,40 @@ export const setActiveClaim = mutation({
     });
   },
 });
+
+// Preparar el siguiente caso (pone la sala en lobby manteniendo a todos los jugadores conectados)
+export const prepareNextClaim = mutation({
+  args: {
+    roomId: v.id("rooms"),
+  },
+  handler: async (ctx, args) => {
+    await ctx.db.patch(args.roomId, {
+      status: "lobby",
+    });
+  },
+});
+
+// Iniciar un nuevo caso en la misma sala (atómico: crea claim y pasa a votación)
+export const startNextClaim = mutation({
+  args: {
+    roomId: v.id("rooms"),
+    claimText: v.string(),
+    authorName: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const claimId = await ctx.db.insert("claims", {
+      roomId: args.roomId,
+      authorName: args.authorName || "Host",
+      content: args.claimText,
+      createdAt: Date.now(),
+    });
+
+    await ctx.db.patch(args.roomId, {
+      activeClaimId: claimId,
+      status: "voting",
+    });
+
+    return claimId;
+  },
+});
+
