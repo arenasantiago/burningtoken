@@ -1,5 +1,5 @@
 import React from "react";
-import { Flame, Scale, Copy, Check, ShieldCheck, Crown } from "lucide-react";
+import { Flame, Scale, Copy, Check, ShieldCheck, Crown, Radio } from "lucide-react";
 
 interface HeaderProps {
   roomCode?: string;
@@ -24,35 +24,54 @@ export const Header: React.FC<HeaderProps> = ({
   };
 
   return (
-    <header className="border-b border-tribunal-border bg-tribunal-card/80 backdrop-blur sticky top-0 z-40 px-4 py-3">
-      <div className="max-w-7xl mx-auto flex items-center justify-between">
+    <header className="border-b border-purple-900/30 bg-slate-950/85 backdrop-blur-md sticky top-0 z-40 px-4 py-3 shadow-xl shadow-black/40 transition">
+      <div className="max-w-7xl mx-auto flex items-center justify-between gap-3">
         {/* Logo & Title */}
-        <div className="flex items-center space-x-3 cursor-pointer" onClick={onPlayGavel}>
-          <div className="bg-purple-600/20 p-2 rounded-lg border border-purple-500/40 text-purple-400">
-            <Scale className="w-6 h-6 animate-pulse-fast" />
-          </div>
+        <div className="flex items-center space-x-3">
+          <button
+            onClick={onPlayGavel}
+            title="Golpear martillo de juez (Sintetizador Web Audio)"
+            className="group relative bg-purple-950/70 hover:bg-purple-900/90 p-2.5 rounded-xl border border-purple-500/40 text-purple-400 hover:text-purple-200 transition active:scale-90 shadow-lg shadow-purple-950/40 focus:outline-none"
+          >
+            <Scale className="w-5 h-5 transition group-hover:rotate-12" />
+            <span className="absolute -bottom-8 left-1/2 -translate-x-1/2 bg-slate-900 text-[10px] font-mono text-purple-300 px-2 py-0.5 rounded border border-purple-800 opacity-0 group-hover:opacity-100 transition pointer-events-none whitespace-nowrap shadow-md">
+              Golpear Martillo ⚖️
+            </span>
+          </button>
+
           <div>
             <div className="flex items-center space-x-2">
-              <h1 className="font-extrabold text-lg text-white tracking-tight">
-                TRUTH TRIBUNAL
+              <h1 className="font-black text-lg sm:text-xl text-white tracking-tight flex items-center gap-1.5">
+                <span>TRUTH</span>
+                <span className="bg-gradient-to-r from-purple-400 to-indigo-400 bg-clip-text text-transparent">
+                  TRIBUNAL
+                </span>
               </h1>
-              <span className="bg-red-500/10 text-red-400 border border-red-500/30 text-xs px-2 py-0.5 rounded-full font-mono flex items-center space-x-1">
-                <Flame className="w-3 h-3 text-red-500" />
+              <span className="bg-red-500/10 text-red-400 border border-red-500/30 text-[10px] sm:text-xs px-2 py-0.5 rounded-full font-mono flex items-center space-x-1">
+                <Flame className="w-3 h-3 text-red-500 animate-pulse" />
                 <span>Hype Auditor</span>
               </span>
             </div>
-            <p className="text-xs text-slate-400 hidden sm:block">
-              NERDCONF 2026 · Desmontando el humo con IA, Búsqueda Iterativa y Datos Duros
+            <p className="text-[11px] text-slate-400 hidden sm:block font-mono">
+              Auditoría Pericial de Afirmaciones Tecnológicas · Deep Research & LLMs Forenses
             </p>
           </div>
         </div>
 
-        {/* Room Info & Controls */}
-        <div className="flex items-center space-x-3">
+        {/* Status, Room & Pro Controls */}
+        <div className="flex items-center space-x-2 sm:space-x-3">
+          {/* Badge WebSocket en vivo */}
+          <div className="hidden md:inline-flex items-center space-x-1.5 bg-emerald-950/50 border border-emerald-500/30 text-emerald-300 text-[10px] font-mono px-2.5 py-1 rounded-full shadow-sm">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span>
+            <Radio className="w-3 h-3 text-emerald-400" />
+            <span>EN VIVO · SYNC MULTIJUGADOR</span>
+          </div>
+
+          {/* Sala activa */}
           {roomCode && (
-            <div className="flex items-center bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 space-x-2">
-              <span className="text-xs text-slate-400 font-mono">SALA:</span>
-              <span className="text-xs font-bold text-purple-400 font-mono tracking-wider">
+            <div className="flex items-center bg-slate-900/90 border border-purple-500/30 rounded-lg px-2.5 py-1 space-x-1.5 shadow-sm">
+              <span className="text-[10px] text-slate-400 font-mono">SALA:</span>
+              <span className="text-xs font-bold text-purple-300 font-mono tracking-wider">
                 {roomCode}
               </span>
               <button
@@ -60,7 +79,7 @@ export const Header: React.FC<HeaderProps> = ({
                 title="Copiar enlace para abrir en otro navegador (Multiplayer)"
                 className="text-slate-400 hover:text-white transition p-1 hover:bg-slate-800 rounded"
               >
-                {copied ? <Check className="w-3.5 h-3.5 text-green-400" /> : <Copy className="w-3.5 h-3.5" />}
+                {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
               </button>
             </div>
           )}
@@ -68,20 +87,20 @@ export const Header: React.FC<HeaderProps> = ({
           {/* RevenueCat Pro Entitlement Status */}
           <button
             onClick={onOpenPaywall}
-            className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition ${
+            className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border transition shadow-sm ${
               hasProAccess
-                ? "bg-amber-500/10 text-amber-300 border-amber-500/40 shadow-sm shadow-amber-500/10"
-                : "bg-slate-800/80 hover:bg-slate-800 text-slate-300 border-slate-700 hover:border-amber-500/40"
+                ? "bg-gradient-to-r from-amber-500/20 to-yellow-500/10 text-amber-300 border-amber-500/50 shadow-amber-500/10 hover:border-amber-400"
+                : "bg-slate-900/90 hover:bg-slate-800 text-slate-300 border-slate-700 hover:border-amber-500/50"
             }`}
           >
             {hasProAccess ? (
               <>
                 <ShieldCheck className="w-4 h-4 text-amber-400" />
-                <span>Dossier Pro Activo</span>
+                <span className="font-mono">Dossier VC Activo</span>
               </>
             ) : (
               <>
-                <Crown className="w-4 h-4 text-amber-400" />
+                <Crown className="w-4 h-4 text-amber-400 animate-pulse" />
                 <span>Desbloquear Pro</span>
               </>
             )}

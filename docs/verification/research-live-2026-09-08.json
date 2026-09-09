@@ -1,0 +1,135 @@
+{
+  "checkedAt": "2026-09-08T17:23:11.020Z",
+  "scope": "Real Linkup/Nebius requests; Convex persistence simulated in memory. Does not verify deployment, multiplayer, accuracy benchmark, Render or RevenueCat.",
+  "claim": "El paper original Attention Is All You Need de 2017 propone una arquitectura Transformer basada en atención, sin recurrencia ni convoluciones.",
+  "model": "Qwen/Qwen3-30B-A3B-Instruct-2507",
+  "providerRequests": [
+    {
+      "provider": "api.linkup.so",
+      "status": 200,
+      "latencyMs": 9042
+    },
+    {
+      "provider": "api.linkup.so",
+      "status": 200,
+      "latencyMs": 11460
+    },
+    {
+      "provider": "api.tokenfactory.nebius.com",
+      "status": 200,
+      "latencyMs": 18299,
+      "responseMetadata": {
+        "finishReason": "stop",
+        "contentLength": 3822,
+        "validJson": true,
+        "verdict": "INSUFFICIENT_EVIDENCE",
+        "hypeScore": null,
+        "summaryPresent": true,
+        "assessmentCount": 8,
+        "usage": {
+          "completion_tokens": 894,
+          "prompt_tokens": 3792,
+          "total_tokens": 4686,
+          "completion_tokens_details": null,
+          "prompt_tokens_details": {
+            "audio_tokens": null,
+            "cached_tokens": 288
+          }
+        }
+      }
+    }
+  ],
+  "verdict": "INSUFFICIENT_EVIDENCE",
+  "summary": "Se encontraron fuentes, pero la evaluación no aportó citas verificables que respalden o contradigan esta afirmación. Se requiere más evidencia antes de concluir.",
+  "auditSources": {
+    "initialSearch": "live",
+    "contrastSearch": "live",
+    "synthesis": "live"
+  },
+  "metrics": {
+    "latencyMs": 18306,
+    "inputTokens": 3792,
+    "outputTokens": 894,
+    "measurementSource": "provider"
+  },
+  "followUpBasedOnStoredSources": 4,
+  "researchGaps": [
+    "Buscar código, datos o replicaciones que permitan verificar lo reportado.",
+    "Buscar límites, condiciones de validez y contraejemplos que no aparecen en los extractos iniciales.",
+    "Contrastar los hallazgos iniciales con una fuente independiente; comprobar también si corroboran la afirmación."
+  ],
+  "evidence": [
+    {
+      "id": "check-source-1",
+      "source": "linkup",
+      "step": "initial_search",
+      "url": "https://introl.com/blog/the-transformer-revolution-how-attention-is-all-you-need-reshaped-modern-ai",
+      "assessment": "unassessed",
+      "uncertaintyLevel": "HIGH",
+      "reason": "No se cita texto directo del paper original. La afirmación se basa en interpretaciones posteriores."
+    },
+    {
+      "id": "check-source-2",
+      "source": "linkup",
+      "step": "initial_search",
+      "url": "https://www.emergentmind.com/videos/transformer-attention-is-all-you-need-b72e5baa",
+      "assessment": "unassessed",
+      "uncertaintyLevel": "HIGH",
+      "reason": "No se incluye fragmento textual del paper. La afirmación se deriva de una presentación interpretativa."
+    },
+    {
+      "id": "check-source-3",
+      "source": "linkup",
+      "step": "initial_search",
+      "url": "https://www.emergentmind.com/topics/transformer-architectures",
+      "assessment": "unassessed",
+      "uncertaintyLevel": "HIGH",
+      "reason": "No se cita el texto original del paper. La afirmación se basa en una descripción general de la arquitectura."
+    },
+    {
+      "id": "check-source-4",
+      "source": "linkup",
+      "step": "initial_search",
+      "url": "https://www.mihaileric.com/posts/transformers-attention-in-disguise/",
+      "assessment": "unassessed",
+      "uncertaintyLevel": "HIGH",
+      "reason": "La fuente es una interpretación popular, no una cita directa del paper original."
+    },
+    {
+      "id": "check-source-5",
+      "source": "linkup",
+      "step": "follow_up_contrast",
+      "url": "https://www.strattegys.com/blog/are-you-paying-attention-to-attention-is-all-you-need",
+      "assessment": "unassessed",
+      "uncertaintyLevel": "HIGH",
+      "reason": "No se incluye texto del paper. La afirmación se basa en una descripción general de la revolución del Transformer."
+    },
+    {
+      "id": "check-source-6",
+      "source": "linkup",
+      "step": "follow_up_contrast",
+      "url": "https://vibepedia.wiki/vaswani-etal",
+      "assessment": "unassessed",
+      "uncertaintyLevel": "HIGH",
+      "reason": "La fuente es una explicación no técnica del paper, sin citas directas del documento original."
+    },
+    {
+      "id": "check-source-7",
+      "source": "linkup",
+      "step": "follow_up_contrast",
+      "url": "https://www.ivector.co/blog/transformers-explained",
+      "assessment": "unassessed",
+      "uncertaintyLevel": "HIGH",
+      "reason": "No se cita el texto del paper. La afirmación se basa en una analogía y explicación posterior."
+    },
+    {
+      "id": "check-source-8",
+      "source": "linkup",
+      "step": "follow_up_contrast",
+      "url": "https://weloveai.ca/transforming-the-world-of-ai/",
+      "assessment": "unassessed",
+      "uncertaintyLevel": "HIGH",
+      "reason": "La fuente es una guía interpretativa, no una verificación del contenido original del paper."
+    }
+  ]
+}

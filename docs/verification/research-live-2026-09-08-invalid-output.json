@@ -1,0 +1,106 @@
+{
+  "checkedAt": "2026-09-08T17:20:04.451Z",
+  "scope": "Real Linkup/Nebius requests; Convex persistence simulated in memory. Does not verify deployment, multiplayer, accuracy benchmark, Render or RevenueCat.",
+  "claim": "El paper original Attention Is All You Need de 2017 propone una arquitectura Transformer basada en atención, sin recurrencia ni convoluciones.",
+  "model": "Qwen/Qwen3-30B-A3B-Instruct-2507",
+  "providerRequests": [
+    {
+      "provider": "api.linkup.so",
+      "status": 200,
+      "latencyMs": 9776
+    },
+    {
+      "provider": "api.linkup.so",
+      "status": 200,
+      "latencyMs": 10329
+    },
+    {
+      "provider": "api.tokenfactory.nebius.com",
+      "status": 200,
+      "latencyMs": 24827
+    }
+  ],
+  "verdict": "INSUFFICIENT_EVIDENCE",
+  "summary": "La auditoría está incompleta: una o más etapas usan demostraciones o no obtuvieron una respuesta válida. Las tarjetas de ejemplo no son pruebas y no permiten concluir si la afirmación es cierta o exagerada.",
+  "auditSources": {
+    "initialSearch": "live",
+    "contrastSearch": "live",
+    "synthesis": "demo"
+  },
+  "metrics": {
+    "latencyMs": 24833,
+    "measurementSource": "unavailable"
+  },
+  "followUpBasedOnStoredSources": 4,
+  "researchGaps": [
+    "Buscar código, datos o replicaciones que permitan verificar lo reportado.",
+    "Buscar límites, condiciones de validez y contraejemplos que no aparecen en los extractos iniciales.",
+    "Contrastar los hallazgos iniciales con una fuente independiente; comprobar también si corroboran la afirmación."
+  ],
+  "evidence": [
+    {
+      "id": "check-source-1",
+      "source": "linkup",
+      "step": "initial_search",
+      "url": "https://introl.com/blog/the-transformer-revolution-how-attention-is-all-you-need-reshaped-modern-ai",
+      "assessment": "unassessed",
+      "uncertaintyLevel": "HIGH"
+    },
+    {
+      "id": "check-source-2",
+      "source": "linkup",
+      "step": "initial_search",
+      "url": "https://www.emergentmind.com/videos/transformer-attention-is-all-you-need-b72e5baa",
+      "assessment": "unassessed",
+      "uncertaintyLevel": "HIGH"
+    },
+    {
+      "id": "check-source-3",
+      "source": "linkup",
+      "step": "initial_search",
+      "url": "https://www.emergentmind.com/topics/transformer-architectures",
+      "assessment": "unassessed",
+      "uncertaintyLevel": "HIGH"
+    },
+    {
+      "id": "check-source-4",
+      "source": "linkup",
+      "step": "initial_search",
+      "url": "https://www.mihaileric.com/posts/transformers-attention-in-disguise/",
+      "assessment": "unassessed",
+      "uncertaintyLevel": "HIGH"
+    },
+    {
+      "id": "check-source-5",
+      "source": "linkup",
+      "step": "follow_up_contrast",
+      "url": "https://www.versaquant.com/blog/attention-is-all-you-need",
+      "assessment": "unassessed",
+      "uncertaintyLevel": "HIGH"
+    },
+    {
+      "id": "check-source-6",
+      "source": "linkup",
+      "step": "follow_up_contrast",
+      "url": "https://www.yuzhang.io/notes/cvml/backbones/transformer",
+      "assessment": "unassessed",
+      "uncertaintyLevel": "HIGH"
+    },
+    {
+      "id": "check-source-7",
+      "source": "linkup",
+      "step": "follow_up_contrast",
+      "url": "https://medium.com/@whoajaypandey/attention-is-all-you-need-how-transformers-changed-the-game-bb6dfa7d36f6",
+      "assessment": "unassessed",
+      "uncertaintyLevel": "HIGH"
+    },
+    {
+      "id": "check-source-8",
+      "source": "linkup",
+      "step": "follow_up_contrast",
+      "url": "https://www.libertify.com/interactive-library/attention-is-all-you-need-guide/",
+      "assessment": "unassessed",
+      "uncertaintyLevel": "HIGH"
+    }
+  ]
+}

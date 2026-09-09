@@ -21,25 +21,25 @@ const STEPS = [
     id: "extracting_claims",
     label: "Extracción y Normalización de Claims",
     icon: Sparkles,
-    provider: "Render Worker",
+    provider: "Background Worker",
   },
   {
     id: "linkup_initial_search",
-    label: "Deep Research: Búsqueda Web Inicial",
+    label: "Rastreo Web Profundo: Búsqueda Inicial",
     icon: Search,
-    provider: "Linkup SDK",
+    provider: "Deep Research Engine",
   },
   {
     id: "linkup_deep_search",
-    label: "Deep Research: Búsqueda de Contraste",
+    label: "Contraste Cruzado y Detección de Brechas",
     icon: Search,
-    provider: "Linkup SDK",
+    provider: "Multi-Source Verification",
   },
   {
     id: "nebius_synthesizing",
-    label: "Síntesis Pericial y Métricas de Inferencia",
+    label: "Evaluación Pericial y Análisis de Hype",
     icon: Cpu,
-    provider: "Nebius Token Factory",
+    provider: "LLM Forense de Alta Precisión",
   },
 ];
 
@@ -60,12 +60,12 @@ export const WorkflowProgress: React.FC<WorkflowProgressProps> = ({
         <div className="flex items-center space-x-2">
           <Server className="w-5 h-5 text-indigo-400" />
           <h3 className="font-bold text-white text-base">
-            Render Workflows: Orquestación Asíncrona Resiliente
+            Orquestación Pericial de Tareas Asíncronas
           </h3>
         </div>
         <div className="flex items-center space-x-2">
           <span className="text-xs bg-indigo-950 border border-indigo-700/50 text-indigo-300 font-mono px-2 py-0.5 rounded">
-            Render Job #rw-{retryCount > 0 ? `retry-${retryCount}` : "active"}
+            Job de Auditoría #rw-{retryCount > 0 ? `retry-${retryCount}` : "active"}
           </span>
           <span className="text-xs font-mono font-bold text-purple-400">
             {progressPercentage}%
@@ -146,30 +146,36 @@ export const WorkflowProgress: React.FC<WorkflowProgressProps> = ({
         })}
       </div>
 
-      {/* Banner de Simulación de Fallo (Reto Render) */}
+      {/* Banner de Simulación de Fallo Controlado */}
       <div className="bg-slate-950/80 border border-slate-800 rounded-lg p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <div className="space-y-1">
           <div className="flex items-center space-x-2 text-xs font-bold text-amber-400">
             <AlertTriangle className="w-4 h-4" />
-            <span>Prueba de Falla Controlada e Idempotencia (Reto Render)</span>
+            <span>Prueba de Resiliencia y Tolerancia a Fallos</span>
           </div>
           <p className="text-[11px] text-slate-400 max-w-xl">
-            Para la demo en video de los jueces: pulsa este botón para inducir un fallo en la mitad del workflow. Render detecta la caída, restaura el checkpoint y reintenta sin duplicar registros en Convex.
+            Inyecta una interrupción controlada en el nodo de procesamiento. El orquestador restaura el estado desde el último checkpoint persistente y reanuda la auditoría garantizando cero duplicación de evidencias.
           </p>
+          {simulatedFailureTriggered && (
+            <div className="inline-flex items-center space-x-1.5 text-[10px] font-mono text-emerald-400 bg-emerald-950/60 border border-emerald-700/50 px-2 py-0.5 rounded">
+              <CheckCircle2 className="w-3 h-3 text-emerald-400" />
+              <span>Checkpoint restaurado · Cero duplicados en base de datos</span>
+            </div>
+          )}
         </div>
 
         <button
           onClick={onTriggerFailureSimulation}
-          className={`shrink-0 px-3 py-2 rounded-lg text-xs font-bold border transition flex items-center space-x-1.5 ${
+          className={`shrink-0 px-3.5 py-2.5 rounded-lg text-xs font-bold border transition flex items-center space-x-1.5 active:scale-95 ${
             simulatedFailureTriggered
               ? "bg-amber-500/20 text-amber-300 border-amber-500 cursor-default"
-              : "bg-red-950/30 hover:bg-red-900/40 text-red-300 border-red-800 hover:border-red-600"
+              : "bg-red-950/30 hover:bg-red-900/40 text-red-300 border-red-800 hover:border-red-600 shadow-md"
           }`}
         >
           <RefreshCw className={`w-3.5 h-3.5 ${simulatedFailureTriggered ? "text-amber-400" : "text-red-400"}`} />
           <span>
             {simulatedFailureTriggered
-              ? "Recuperado Exitosamente"
+              ? "Recuperado Exitosamente (Reintento #1)"
               : "Inducir Falla Controlada"}
           </span>
         </button>

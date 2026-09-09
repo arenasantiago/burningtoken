@@ -1,0 +1,105 @@
+{
+  "checkedAt": "2026-09-08T17:18:14.520Z",
+  "scope": "Real Linkup/Nebius requests; Convex persistence simulated in memory. Does not verify deployment, multiplayer, accuracy benchmark, Render or RevenueCat.",
+  "claim": "El paper original Attention Is All You Need de 2017 propone una arquitectura Transformer basada en atención, sin recurrencia ni convoluciones.",
+  "providerRequests": [
+    {
+      "provider": "api.linkup.so",
+      "status": 200,
+      "latencyMs": 8331
+    },
+    {
+      "provider": "api.linkup.so",
+      "status": 200,
+      "latencyMs": 10340
+    },
+    {
+      "provider": "api.tokenfactory.nebius.com",
+      "status": "transport-error-or-timeout",
+      "latencyMs": 30015
+    }
+  ],
+  "verdict": "INSUFFICIENT_EVIDENCE",
+  "summary": "La auditoría está incompleta: una o más etapas usan demostraciones o no obtuvieron una respuesta válida. Las tarjetas de ejemplo no son pruebas y no permiten concluir si la afirmación es cierta o exagerada.",
+  "auditSources": {
+    "initialSearch": "live",
+    "contrastSearch": "live",
+    "synthesis": "demo"
+  },
+  "metrics": {
+    "latencyMs": 30016,
+    "measurementSource": "unavailable"
+  },
+  "followUpBasedOnStoredSources": 4,
+  "researchGaps": [
+    "Buscar código, datos o replicaciones que permitan verificar lo reportado.",
+    "Buscar límites, condiciones de validez y contraejemplos que no aparecen en los extractos iniciales.",
+    "Contrastar los hallazgos iniciales con una fuente independiente; comprobar también si corroboran la afirmación."
+  ],
+  "evidence": [
+    {
+      "id": "check-source-1",
+      "source": "linkup",
+      "step": "initial_search",
+      "url": "https://grokipedia.com/page/attention-is-all-you-need",
+      "assessment": "unassessed",
+      "uncertaintyLevel": "HIGH"
+    },
+    {
+      "id": "check-source-2",
+      "source": "linkup",
+      "step": "initial_search",
+      "url": "https://vibepedia.wiki/vaswani-etal",
+      "assessment": "unassessed",
+      "uncertaintyLevel": "HIGH"
+    },
+    {
+      "id": "check-source-3",
+      "source": "linkup",
+      "step": "initial_search",
+      "url": "https://www.strattegys.com/blog/are-you-paying-attention-to-attention-is-all-you-need",
+      "assessment": "unassessed",
+      "uncertaintyLevel": "HIGH"
+    },
+    {
+      "id": "check-source-4",
+      "source": "linkup",
+      "step": "initial_search",
+      "url": "https://www.ivector.co/blog/transformers-explained",
+      "assessment": "unassessed",
+      "uncertaintyLevel": "HIGH"
+    },
+    {
+      "id": "check-source-5",
+      "source": "linkup",
+      "step": "follow_up_contrast",
+      "url": "https://www.marangon.com/",
+      "assessment": "unassessed",
+      "uncertaintyLevel": "HIGH"
+    },
+    {
+      "id": "check-source-6",
+      "source": "linkup",
+      "step": "follow_up_contrast",
+      "url": "https://introl.com/blog/the-transformer-revolution-how-attention-is-all-you-need-reshaped-modern-ai",
+      "assessment": "unassessed",
+      "uncertaintyLevel": "HIGH"
+    },
+    {
+      "id": "check-source-7",
+      "source": "linkup",
+      "step": "follow_up_contrast",
+      "url": "https://tildalice.io/attention-is-all-you-need-review-2/",
+      "assessment": "unassessed",
+      "uncertaintyLevel": "HIGH"
+    },
+    {
+      "id": "check-source-8",
+      "source": "linkup",
+      "step": "follow_up_contrast",
+      "url": "https://neura.market/ai-and-ml-research-papers/attention-is-all-you-need",
+      "assessment": "unassessed",
+      "uncertaintyLevel": "HIGH"
+    }
+  ]
+}

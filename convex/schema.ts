@@ -1,5 +1,6 @@
 import { defineSchema, defineTable } from "convex/server";
 import { v } from "convex/values";
+import { completionReasonValidator, auditMetricsValidator, auditSourcesValidator, evidenceAssessmentValidator, evidenceSourceValidator, verdictValidator } from "./auditValidators";
 
 export default defineSchema({
   // 1. Salas multijugador (Convex Multiplayer)
@@ -55,23 +56,20 @@ export default defineSchema({
     progressPercentage: v.number(),
     simulatedFailureTriggered: v.boolean(), // Flag para la demo del reto Render
     retryCount: v.number(),
+    completedCheckpoints: v.optional(v.array(v.string())), // Checkpoints persistentes (Render Workflows)
     
     // Resultados de Nebius Token Factory (Applied AI)
-    verdict: v.optional(v.union(v.literal("CERTIFIED_SMOKE"), v.literal("PLAUSIBLE"), v.literal("VERIFIED_LEGIT"))),
+    verdict: v.optional(verdictValidator),
+    auditSources: v.optional(auditSourcesValidator),
+    completionReason: v.optional(completionReasonValidator),
+    diagnostics: v.optional(v.array(v.string())),
+    researchPlan: v.optional(v.object({ query: v.string(), gaps: v.array(v.string()), basedOnEvidenceIds: v.array(v.id("evidence")) })),
     hypeScore: v.optional(v.number()),      // 0 a 100% de humo
     summary: v.optional(v.string()),
     edgeCaseWarning: v.optional(v.string()), // Caso límite documentado donde falla el LLM
     
     // Métricas cuantitativas exigidas por Nebius
-    metrics: v.optional(
-      v.object({
-        latencyMs: v.number(),
-        inputTokens: v.number(),
-        outputTokens: v.number(),
-        estimatedCostUsd: v.number(),
-        confidenceScore: v.number(),
-      })
-    ),
+    metrics: v.optional(auditMetricsValidator),
     updatedAt: v.number(),
   }).index("by_claim", ["claimId"]),
 
@@ -85,6 +83,10 @@ export default defineSchema({
     snippet: v.string(),
     uncertaintyLevel: v.union(v.literal("LOW"), v.literal("MEDIUM"), v.literal("HIGH")),
     supportsClaim: v.boolean(),
+    source: v.optional(evidenceSourceValidator),
+    assessment: v.optional(evidenceAssessmentValidator),
+    assessmentReason: v.optional(v.string()),
+    supportingQuote: v.optional(v.string()),
     createdAt: v.number(),
   }).index("by_investigation", ["investigationId"]),
 

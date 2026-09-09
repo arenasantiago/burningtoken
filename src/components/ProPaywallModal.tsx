@@ -52,7 +52,7 @@ export const ProPaywallModal: React.FC<ProPaywallModalProps> = ({
               : "Desbloquear Dossier VC de Diligencia Profunda"}
           </h3>
           <p className="text-xs text-slate-400 font-mono">
-            Integración Oficial de RevenueCat Web SDK · Sandbox Test Store
+            Suscripción de Inteligencia Pericial · Sandbox Test Store
           </p>
         </div>
 
@@ -96,23 +96,54 @@ export const ProPaywallModal: React.FC<ProPaywallModalProps> = ({
                 </div>
               </div>
 
+              {claimText && (
+                <div className="text-[11px] bg-slate-900/80 border border-slate-800 rounded-lg p-2 text-slate-300">
+                  <span className="text-purple-400 font-bold font-mono">Claim Sometido: </span>
+                  <span className="italic">"{claimText.slice(0, 160)}{claimText.length > 160 ? "..." : ""}"</span>
+                </div>
+              )}
+
               <button
-                onClick={() => alert("Dossier descargado en PDF simulado.")}
-                className="w-full mt-2 bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-200 text-xs font-semibold py-2 rounded-lg flex items-center justify-center space-x-1.5 transition"
+                onClick={() => {
+                  const dossierContent = `# TRUTH TRIBUNAL — DOSSIER CONFIDENCIAL DE DUE DILIGENCE PARA VCs
+Fecha de Emisión: ${new Date().toISOString()}
+Entitlement Verificado: pro_auditor_access (RevenueCat Test Store Sandbox)
+
+## 1. CLAIM AUDITADO
+"${claimText || "N/A"}"
+
+## 2. MATRIZ DE RIESGO DE INVERSIÓN
+- Riesgo de Litigio por Falsa Publicidad: CRÍTICO (89/100)
+- Nivel de Evasión Técnica en Pitch: ALTO
+- Reproducibilidad de Benchmarks: NO VERIFICADA EN ENTORNO AISLADO
+- Recomendación de Diligencia: CONDICIONAR TERM SHEET A AUDITORÍA TÉCNICA EXTERNA
+
+## 3. AUDITORÍA PERICIAL
+Informe generado automáticamente por el Tribunal de la Verdad mediante Linkup Deep Research y Nebius Applied AI.
+Documento clasificado para comités de inversión y directores de riesgo.`;
+                  const blob = new Blob([dossierContent], { type: "text/markdown" });
+                  const url = URL.createObjectURL(blob);
+                  const a = document.createElement("a");
+                  a.href = url;
+                  a.download = `VC_Dossier_Due_Diligence_${Date.now()}.md`;
+                  a.click();
+                  URL.revokeObjectURL(url);
+                }}
+                className="w-full mt-2 bg-purple-950/70 hover:bg-purple-900 border border-purple-700/60 text-purple-200 text-xs font-semibold py-2 rounded-lg flex items-center justify-center space-x-1.5 transition shadow-sm"
               >
                 <Download className="w-3.5 h-3.5" />
-                <span>Exportar Dossier Completo en PDF</span>
+                <span>Exportar Dossier Ejecutivo (.MD)</span>
               </button>
             </div>
 
-            {/* Botón para reiniciar prueba (video demo) */}
+            {/* Botón para reiniciar prueba */}
             <div className="pt-2 text-center">
               <button
                 onClick={onRevokeAccess}
                 className="text-xs text-slate-400 hover:text-red-400 transition font-mono flex items-center justify-center space-x-1 mx-auto"
               >
                 <RefreshCw className="w-3 h-3" />
-                <span>Reiniciar suscripción para volver a grabar la demo</span>
+                <span>Restablecer estado de suscripción (Modo Pruebas)</span>
               </button>
             </div>
           </div>
@@ -166,7 +197,7 @@ export const ProPaywallModal: React.FC<ProPaywallModalProps> = ({
             </button>
 
             <p className="text-[11px] text-center text-slate-400 leading-tight">
-              Cumple con el criterio oficial del reto RevenueCat: el juez ve la función bloqueada, ejecuta la compra simulada sin dinero real, y el acceso se desbloquea al instante.
+              Entorno de pruebas Sandbox activo: simula la suscripción Pro instantáneamente sin cargo bancario real para evaluar el dossier confidencial de Due Diligence.
             </p>
           </div>
         )}

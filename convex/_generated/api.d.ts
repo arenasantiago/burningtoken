@@ -9,10 +9,14 @@
  */
 
 import type * as actions from "../actions.js";
+import type * as auditValidators from "../auditValidators.js";
 import type * as claims from "../claims.js";
 import type * as entitlements from "../entitlements.js";
 import type * as evidence from "../evidence.js";
 import type * as investigations from "../investigations.js";
+import type * as lib_auditPolicy from "../lib/auditPolicy.js";
+import type * as lib_claimSuggestions from "../lib/claimSuggestions.js";
+import type * as lib_research from "../lib/research.js";
 import type * as rooms from "../rooms.js";
 import type * as votes from "../votes.js";
 
@@ -24,10 +28,14 @@ import type {
 
 declare const fullApi: ApiFromModules<{
   actions: typeof actions;
+  auditValidators: typeof auditValidators;
   claims: typeof claims;
   entitlements: typeof entitlements;
   evidence: typeof evidence;
   investigations: typeof investigations;
+  "lib/auditPolicy": typeof lib_auditPolicy;
+  "lib/claimSuggestions": typeof lib_claimSuggestions;
+  "lib/research": typeof lib_research;
   rooms: typeof rooms;
   votes: typeof votes;
 }>;

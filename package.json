@@ -6,8 +6,9 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
+    "test": "node --test tests/*.test.mjs",
     "preview": "vite preview",
-    "deploy": "npx @convex-dev/static-hosting deploy"
+    "deploy": "tsc && vite build && npx @convex-dev/static-hosting upload"
   },
   "dependencies": {
     "@convex-dev/static-hosting": "^0.2.1",

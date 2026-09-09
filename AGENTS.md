@@ -12,9 +12,20 @@
 
 El sistema somete cualquier *claim* al juicio de una audiencia distribuida y a un escuadrón de agentes autónomos que ejecutan búsqueda iterativa profunda, contraste de evidencias y evaluación pericial con LLMs, complementado con un paywall de suscripciones para informes confidenciales de *Due Diligence*.
 
+Esta descripción y el diagrama expresan el objetivo del producto. El estado comprobable del código, las simulaciones y los siguientes incrementos se registran en [docs/IMPLEMENTATION_STATUS.md](docs/IMPLEMENTATION_STATUS.md). La presencia de una integración o una pantalla no acredita por sí sola el cumplimiento de un reto.
+
+### Estados de trabajo
+
+- **Implementado:** existe código para la función descrita; no implica que se haya probado con servicios reales.
+- **Verificado:** una comprobación pasó y tiene evidencia, fecha, entorno y alcance registrados. Una compilación no verifica compras, investigación ni recuperación del worker.
+- **Simulado:** usa datos prefijados o reproduce visualmente una operación. Debe identificarse como demostración en la UI y en la presentación.
+- **Planeado:** todavía no está implementado; es un siguiente paso, no una capacidad disponible.
+
 ---
 
 ## 🏆 2. Matriz de los 6 Retos Patrocinados (Obligatorios)
+
+Plan de entrega y discrepancia de fechas observada en las páginas oficiales: [docs/HACKATHON_PLAN.md](docs/HACKATHON_PLAN.md). Mantener el objetivo temprano del dashboard hasta aclarar la diferencia con las reglas generales.
 
 Todo agente que trabaje en esta base de código **debe preservar intacta la funcionalidad y los requisitos técnicos de cada sponsor**:
 
@@ -172,22 +183,27 @@ npx @convex-dev/static-hosting upload
    - Nunca añadir archivos `.mp3`, `.wav` o bibliotecas pesadas de audio. Todo el diseño de sonido reside en `src/hooks/useAudioTribunal.ts` sintetizado matemáticamente con osciladores y filtros del Web Audio API.
 3. **Manejo de Errores en APIs Externas:**
    - Si Linkup o Nebius fallan por cuota o latencia, `convex/actions.ts` contiene fallbacks con datos estructurados para garantizar que la experiencia interactiva nunca se rompa durante una demo o evaluación de jurado.
+   - La continuidad de la demo debe mostrar el origen de los datos y el estado del proveedor. Una fuente simulada no es evidencia verificada; sin evidencia suficiente se debe informar esa limitación, sin asignar un veredicto acusatorio ni métricas inventadas.
 4. **Seguridad de Secretos:**
    - Jamás commitear `.env.local` ni imprimir las API Keys de Linkup, Nebius o RevenueCat en el repositorio público de GitHub.
 5. **Compatibilidad Multiplataforma en Terminales:**
    - El entorno de ejecución primario en Windows usa PowerShell. No encadenar comandos con `&&`. Usar `;` o comandos independientes.
+6. **Avance Incremental y Evidencia:**
+   - Trabajar en incrementos pequeños con criterios de aceptación en `docs/IMPLEMENTATION_STATUS.md`. Actualizar el estado al cerrar cada incremento y registrar sólo las comprobaciones ejecutadas y sus resultados; mantener explícitas las verificaciones pendientes.
 
 ---
 
 ## 🗺️ 7. Proyecciones y Hoja de Ruta (Roadmap)
 
 ### Fase 1: Hackathon Final Polish & Demo Submission (Inmediato - Sept 2026)
-- [x] Arquitectura de los 6 retos implementada y funcional.
-- [x] Despliegue oficial en `https://brave-lemur-868.convex.site`.
-- [x] Soporte atómico multi-inquilino para invitados y normalización de códigos `HYPE-XXX`.
+- [ ] Completar y verificar los 6 retos; hay integraciones parciales y simulaciones documentadas en `docs/IMPLEMENTATION_STATUS.md`.
+- [ ] Registrar una verificación del despliegue declarado en `https://brave-lemur-868.convex.site`, con fecha y alcance.
+- [x] Implementación de creación atómica de sala/claim y normalización de códigos `HYPE-XXX`; verificación de Host e Invitado pendiente de registro.
 - [ ] Grabación del video demo de 2 minutos siguiendo el guion en `README.md`.
 - [ ] Publicación en X etiquetando a `@nerdconf_ar`.
 - [ ] Envío del formulario oficial en `app.burningtoken.dev`.
+
+Las fases 2 a 5 son **planeadas**, fuera del alcance de los incrementos inmediatos del hackathon.
 
 ### Fase 2: Social Embeds & Extensiones de Navegador (Q4 2026)
 - **Extensión Chrome Manifest V3:** Botón integrado en X (Twitter) y LinkedIn para hacer clic derecho sobre cualquier tweet o post y *"Enviar al Tribunal"*.
@@ -241,3 +257,4 @@ Antes de dar por completada cualquier tarea o modificación:
 2. `npx convex dev --once` debe validar las funciones del backend.
 3. Todo cambio en el flujo de votación debe probarse simulando dos sesiones simultáneas (Host e Invitado).
 4. El video demo y los timestamps deben alinearse con la tabla de `README.md`.
+5. Registrar fecha, entorno, alcance y resultado de las comprobaciones en `docs/IMPLEMENTATION_STATUS.md`. No marcar una integración como verificada por haber leído el código o mostrado su simulación.

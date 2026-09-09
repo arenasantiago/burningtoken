@@ -126,7 +126,11 @@ export function App() {
   // 3. Emitir voto multijugador reactivo
   const handleCastVote = async (choice: "SMOKE" | "LEGIT") => {
     if (!room || !room.activeClaimId) return;
-    audio.playVoteClick();
+    if (choice === "SMOKE") {
+      audio.playVoteSmoke();
+    } else {
+      audio.playVoteLegit();
+    }
     try {
       await castVoteMutation({
         claimId: room.activeClaimId,
@@ -164,7 +168,7 @@ export function App() {
           if (result.verdict === "CERTIFIED_SMOKE") {
             audio.playVerdictChime(true);
             audio.playSmokeSiren();
-          } else {
+          } else if (result.verdict === "VERIFIED_LEGIT" || result.verdict === "PLAUSIBLE") {
             audio.playVerdictChime(false);
           }
         })
@@ -214,7 +218,10 @@ export function App() {
   };
 
   return (
-    <div className="min-h-screen bg-tribunal-dark flex flex-col selection:bg-purple-600 selection:text-white">
+    <div className="min-h-screen bg-tribunal-dark bg-cyber-grid flex flex-col selection:bg-purple-600 selection:text-white relative overflow-x-hidden">
+      {/* Ambient background glow */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] sm:w-[900px] h-[300px] sm:h-[400px] bg-purple-600/10 blur-[140px] rounded-full pointer-events-none -z-10" />
+
       {/* Header global */}
       <Header
         roomCode={activeRoomCode || undefined}
@@ -224,7 +231,7 @@ export function App() {
       />
 
       {/* Main Stage */}
-      <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 space-y-8">
+      <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 space-y-8 z-10">
         {/* Vista 1: Lobby Inicial */}
         {!activeRoomCode && (
           <RoomLobby
@@ -303,13 +310,13 @@ export function App() {
           <div className="space-y-6">
             <WorkflowProgress
               currentStep={investigation?.currentStep || "extracting_claims"}
-              progressPercentage={investigation?.progressPercentage || 25}
+              progressPercentage={investigation?.progressPercentage ?? 0}
               simulatedFailureTriggered={investigation?.simulatedFailureTriggered || false}
               retryCount={investigation?.retryCount || 0}
               onTriggerFailureSimulation={handleTriggerFailureSimulation}
             />
             {liveEvidence && liveEvidence.length > 0 && (
-              <EvidenceBoard evidenceList={liveEvidence as any} />
+              <EvidenceBoard evidenceList={liveEvidence} researchPlan={investigation?.researchPlan} />
             )}
           </div>
         )}
@@ -318,20 +325,16 @@ export function App() {
         {activeRoomCode && room && room.status === "verdict" && (
           <div className="space-y-8">
             <VerdictReport
-              verdict={investigation?.verdict || "CERTIFIED_SMOKE"}
-              hypeScore={investigation?.hypeScore || 85}
-              summary={investigation?.summary || "Reporte pericial sintetizado por Nebius Token Factory."}
-              edgeCaseWarning={investigation?.edgeCaseWarning || "Limitación del modelo ante fórmulas criptográficas densas."}
-              metrics={
-                investigation?.metrics || {
-                  latencyMs: 1180,
-                  inputTokens: 820,
-                  outputTokens: 310,
-                  estimatedCostUsd: 0.00021,
-                  confidenceScore: 94.2,
-                }
-              }
+              verdict={investigation?.verdict ?? "INSUFFICIENT_EVIDENCE"}
+              hypeScore={investigation?.hypeScore}
+              summary={investigation?.summary}
+              edgeCaseWarning={investigation?.edgeCaseWarning}
+              metrics={investigation?.metrics}
+              auditSources={investigation?.auditSources}
+              completionReason={investigation?.completionReason}
+              diagnostics={investigation?.diagnostics}
               hasProAccess={hasProAccess}
+              claimText={activeClaim?.content}
               onOpenPaywall={() => setIsPaywallOpen(true)}
               onNewClaim={() => {
                 if (room) {
@@ -342,7 +345,7 @@ export function App() {
               }}
             />
             {liveEvidence && liveEvidence.length > 0 && (
-              <EvidenceBoard evidenceList={liveEvidence as any} />
+              <EvidenceBoard evidenceList={liveEvidence} researchPlan={investigation?.researchPlan} />
             )}
           </div>
         )}
@@ -361,12 +364,12 @@ export function App() {
       {/* Footer */}
       <footer className="border-t border-tribunal-border bg-slate-950/80 py-4 px-4 text-center text-xs text-slate-400">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
-          <span>Truth Tribunal · NERDCONF Burning Token Hackathon 2026</span>
-          <div className="flex items-center space-x-4 font-mono text-[11px] text-slate-400">
-            <span className="text-purple-400">● Convex Cloud: brave-lemur-868</span>
-            <span className="text-emerald-400">● Linkup Deep Research</span>
-            <span className="text-indigo-400">● Nebius Token Factory</span>
-            <span className="text-amber-400">● RevenueCat Test Store</span>
+          <span>Truth Tribunal · The Bullshit & Hype Auditor</span>
+          <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 font-mono text-[11px] text-slate-400">
+            <span className="text-purple-400">● Red Reactiva Multijugador</span>
+            <span className="text-emerald-400">● Deep Research Multifuente</span>
+            <span className="text-indigo-400">● Inferencia LLM Forense</span>
+            <span className="text-amber-400">● Due Diligence Certificado</span>
           </div>
         </div>
       </footer>
