@@ -35,7 +35,7 @@ export const RoomLobby: React.FC<RoomLobbyProps> = ({
   onCreateRoom,
   onJoinRoom,
 }) => {
-  const [roomTitle, setRoomTitle] = useState("¿Noticia Real o Puro Humo?");
+  const [roomTitle, setRoomTitle] = useState("");
   const [claimText, setClaimText] = useState("");
   const [joinCode, setJoinCode] = useState("");
   const [suggestions, setSuggestions] = useState<Array<{ text: string; angle: string; verifiabilityScore: number; reasoning: string }>>([]);
@@ -80,7 +80,7 @@ export const RoomLobby: React.FC<RoomLobbyProps> = ({
           <Sparkles className="w-3.5 h-3.5 text-purple-400 animate-spin" style={{ animationDuration: '4s' }} />
           <span>¿Es Verdad, Fake News o Puro Humo? · Auditoría Colaborativa en Vivo</span>
         </div>
-        
+
         <h2 className="text-3xl sm:text-5xl md:text-6xl font-black text-white tracking-tight leading-tight">
           ¿Promesa Real o{" "}
           <span className="bg-gradient-to-r from-red-500 via-orange-500 to-amber-400 bg-clip-text text-transparent underline decoration-red-500/30">
@@ -137,15 +137,12 @@ export const RoomLobby: React.FC<RoomLobbyProps> = ({
                 value={claimText}
                 onChange={(e) => setClaimText(e.target.value)}
                 rows={3}
-                placeholder="Pega aquí la noticia viral, tweet, pitch de startup o promesa comercial que quieres auditar..."
+                placeholder="¿Noticia Real o Puro Humo?\n Pega aquí la noticia viral, tweet, pitch de startup o promesa comercial que quieres auditar..."
                 className="w-full bg-slate-950 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition leading-relaxed"
                 required
               />
 
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-2">
-                <span className="text-[11px] text-slate-400 font-mono">
-                  ¿Afirmación ambigua, metafísica o subjetiva?
-                </span>
                 <button
                   type="button"
                   onClick={handleOptimizeClaim}
