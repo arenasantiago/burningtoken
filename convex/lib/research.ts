@@ -13,7 +13,7 @@ function record(value: unknown): Record<string, unknown> | undefined {
     ? value as Record<string, unknown> : undefined;
 }
 
-export function normalizeLinkupResults(value: unknown): SearchResultItem[] {
+export function normalizeLinkupResults(value: unknown, maxResults: number = 4): SearchResultItem[] {
   const results = record(value)?.results;
   if (!Array.isArray(results)) return [];
   const seen = new Set<string>();
@@ -38,7 +38,7 @@ export function normalizeLinkupResults(value: unknown): SearchResultItem[] {
       source: "linkup",
       assessment: "unassessed",
     });
-    if (evidence.length === 4) break;
+    if (evidence.length === maxResults) break;
   }
   return evidence;
 }

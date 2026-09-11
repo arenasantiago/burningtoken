@@ -97,35 +97,46 @@ export const InRoomLobby: React.FC<InRoomLobbyProps> = ({
         </div>
       </div>
 
-      {/* Editor de Nickname para todos los participantes */}
-      <div className="bg-slate-950/60 border border-slate-800/80 rounded-xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-        <div className="space-y-0.5">
-          <div className="text-xs font-bold text-slate-200 flex items-center space-x-1.5">
-            <UserCheck className="w-4 h-4 text-purple-400" />
-            <span>Tu Identidad en el Jurado (Nickname):</span>
+      {/* Identidad de los participantes */}
+      {!isHost ? (
+        <div className="bg-slate-950/60 border border-slate-800/80 rounded-xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+          <div className="space-y-0.5">
+            <div className="text-xs font-bold text-slate-200 flex items-center space-x-1.5">
+              <UserCheck className="w-4 h-4 text-purple-400" />
+              <span>Tu Identidad en el Jurado (Nickname):</span>
+            </div>
+            <p className="text-[11px] text-slate-400">
+              Este nombre aparecerá en el feed de votaciones en vivo y en los reportes del tribunal.
+            </p>
           </div>
-          <p className="text-[11px] text-slate-400">
-            Este nombre aparecerá en el feed de votaciones en vivo y en los reportes del tribunal.
-          </p>
-        </div>
 
-        <form onSubmit={handleSaveNick} className="flex items-center space-x-2 w-full sm:w-auto">
-          <input
-            type="text"
-            value={editingNick}
-            onChange={(e) => setEditingNick(e.target.value)}
-            placeholder="Tu apodo"
-            maxLength={25}
-            className="bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white font-mono focus:outline-none focus:border-purple-500"
-          />
-          <button
-            type="submit"
-            className="bg-purple-900/60 hover:bg-purple-800 border border-purple-600/50 text-purple-200 px-3 py-1.5 rounded-lg text-xs font-semibold transition shrink-0"
-          >
-            {nickSaved ? "¡Guardado!" : "Actualizar"}
-          </button>
-        </form>
-      </div>
+          <form onSubmit={handleSaveNick} className="flex items-center space-x-2 w-full sm:w-auto">
+            <input
+              type="text"
+              value={editingNick}
+              onChange={(e) => setEditingNick(e.target.value)}
+              placeholder="Tu apodo"
+              maxLength={25}
+              className="bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white font-mono focus:outline-none focus:border-purple-500"
+            />
+            <button
+              type="submit"
+              className="bg-purple-900/60 hover:bg-purple-800 border border-purple-600/50 text-purple-200 px-3 py-1.5 rounded-lg text-xs font-semibold transition shrink-0"
+            >
+              {nickSaved ? "¡Guardado!" : "Actualizar"}
+            </button>
+          </form>
+        </div>
+      ) : (
+        <div className="bg-purple-950/20 border border-purple-900/40 rounded-xl px-4 py-2.5 flex items-center justify-between">
+          <div className="flex items-center space-x-2 text-xs text-slate-300">
+            <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+            <span>Identidad en la sesión:</span>
+            <span className="font-mono font-bold text-purple-300">Host (Presidente del Tribunal)</span>
+          </div>
+          <span className="text-[11px] font-mono text-slate-500">Control de sala activo</span>
+        </div>
+      )}
 
       {/* VISTA DEL HOST: Formulación del siguiente claim */}
       {isHost ? (

@@ -1,5 +1,6 @@
 import React from "react";
-import { Server, CheckCircle2, AlertTriangle, RefreshCw, Cpu, Search, Sparkles } from "lucide-react";
+import { CheckCircle2, AlertTriangle, RefreshCw, Server, Search, FileText, Cpu, Sparkles } from "lucide-react";
+import { PericialTerm } from "./PericialTerm";
 
 interface WorkflowProgressProps {
   currentStep:
@@ -91,7 +92,7 @@ export const WorkflowProgress: React.FC<WorkflowProgressProps> = ({
           <span>Estado del Worker: {currentStep.toUpperCase().replace(/_/g, " ")}</span>
           {retryCount > 0 && (
             <span className="text-amber-400 font-bold">
-              Reintentos Idempotentes: {retryCount}
+              <PericialTerm term="Idempotencia">Reintentos Idempotentes</PericialTerm>: {retryCount}
             </span>
           )}
         </div>
@@ -151,10 +152,10 @@ export const WorkflowProgress: React.FC<WorkflowProgressProps> = ({
         <div className="space-y-1">
           <div className="flex items-center space-x-2 text-xs font-bold text-amber-400">
             <AlertTriangle className="w-4 h-4" />
-            <span>Prueba de Resiliencia y Tolerancia a Fallos</span>
+            <span>Prueba de <PericialTerm term="Tolerancia a Fallos">Resiliencia y Tolerancia a Fallos</PericialTerm></span>
           </div>
           <p className="text-[11px] text-slate-400 max-w-xl">
-            Inyecta una interrupción controlada en el nodo de procesamiento. El orquestador restaura el estado desde el último checkpoint persistente y reanuda la auditoría garantizando cero duplicación de evidencias.
+            Inyecta una interrupción controlada en el nodo de procesamiento. El orquestador restaura el estado desde el último <PericialTerm term="Checkpoints">checkpoint persistente</PericialTerm> y reanuda la auditoría garantizando <PericialTerm term="Idempotencia">cero duplicación de evidencias</PericialTerm>.
           </p>
           {simulatedFailureTriggered && (
             <div className="inline-flex items-center space-x-1.5 text-[10px] font-mono text-emerald-400 bg-emerald-950/60 border border-emerald-700/50 px-2 py-0.5 rounded">

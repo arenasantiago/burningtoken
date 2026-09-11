@@ -13,6 +13,7 @@ import {
   Radio,
 } from "lucide-react";
 import { useAudioTribunal } from "../hooks/useAudioTribunal";
+import { PericialTerm } from "./PericialTerm";
 
 interface LiveVotingProps {
   claimContent: string;
@@ -149,7 +150,9 @@ export const LiveVoting: React.FC<LiveVotingProps> = ({
         <div className="w-full flex items-center justify-between text-xs font-mono text-slate-400 mb-2">
           <span className="flex items-center space-x-1.5">
             <Activity className="w-4 h-4 text-purple-400" />
-            <span className="tracking-widest uppercase font-semibold">Hype-o-Meter 3000 · Sensor Colectivo</span>
+            <span className="tracking-widest uppercase font-semibold">
+              <PericialTerm term="Hype Score">Hype-o-Meter 3000</PericialTerm> · Sensor Colectivo
+            </span>
           </span>
           <span className="text-[11px] text-purple-300/80 bg-purple-950/50 px-2 py-0.5 rounded border border-purple-800/40">
             Medición de Hype en Vivo

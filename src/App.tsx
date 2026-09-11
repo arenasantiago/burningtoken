@@ -9,6 +9,7 @@ import { WorkflowProgress } from "./components/WorkflowProgress";
 import { EvidenceBoard } from "./components/EvidenceBoard";
 import { VerdictReport } from "./components/VerdictReport";
 import { ProPaywallModal } from "./components/ProPaywallModal";
+import { GuestJoinModal } from "./components/GuestJoinModal";
 import { useAudioTribunal } from "./hooks/useAudioTribunal";
 import { useRevenueCat } from "./hooks/useRevenueCat";
 import { Loader2, AlertTriangle, RefreshCw } from "lucide-react";
@@ -115,7 +116,28 @@ export function App() {
 
   // Determinar si el usuario actual es el Host de la sala y su identidad
   const isHost = room ? room.hostUserId === voterId : false;
-  const effectiveUserName = nickname || (isHost ? "Host" : `Invitado ${voterId.slice(-4)}`);
+  const effectiveUserName = isHost ? "Host" : (nickname || `Invitado ${voterId.slice(-4)}`);
+
+  // Modal de Acreditación para Invitados
+  const [isGuestModalOpen, setIsGuestModalOpen] = useState(false);
+
+  useEffect(() => {
+    if (activeRoomCode && room && !isHost) {
+      const confirmed = sessionStorage.getItem(`guest_nick_confirmed_${activeRoomCode}`);
+      if (!confirmed) {
+        setIsGuestModalOpen(true);
+      }
+    }
+  }, [activeRoomCode, room, isHost]);
+
+  const handleConfirmGuestNickname = (name: string) => {
+    handleUpdateNickname(name);
+    if (activeRoomCode) {
+      sessionStorage.setItem(`guest_nick_confirmed_${activeRoomCode}`, "true");
+    }
+    setIsGuestModalOpen(false);
+    audio.playVoteClick();
+  };
 
   // Sincronización reactiva del audio del veredicto para todos los participantes (Host e Invitados)
   const playedVerdictKeyRef = useRef<string | null>(null);
@@ -234,6 +256,7 @@ export function App() {
         investigationId: invId,
         roomId: room._id,
         claimText: activeClaim.content,
+        isPro: hasProAccess,
       })
         .then((result) => {
           setIsAuditingLocally(false);
@@ -301,10 +324,7 @@ export function App() {
         onOpenPaywall={() => setIsPaywallOpen(true)}
         onPlayGavel={audio.playGavel}
         nickname={effectiveUserName}
-        onEditNickname={() => {
-          const newName = window.prompt("Ingresa tu apodo o nickname:", nickname);
-          if (newName !== null) handleUpdateNickname(newName);
-        }}
+        onEditNickname={!isHost ? () => setIsGuestModalOpen(true) : undefined}
       />
 
       {/* Main Stage */}
@@ -435,6 +455,14 @@ export function App() {
           </div>
         )}
       </main>
+
+      {/* Modal Acreditación de Jurado Invitado */}
+      <GuestJoinModal
+        isOpen={isGuestModalOpen}
+        roomCode={activeRoomCode || ""}
+        onConfirmNickname={handleConfirmGuestNickname}
+        initialNickname={nickname}
+      />
 
       {/* Modal RevenueCat Test Store */}
       <ProPaywallModal
