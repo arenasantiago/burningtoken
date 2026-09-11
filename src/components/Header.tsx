@@ -53,11 +53,11 @@ export const Header: React.FC<HeaderProps> = ({
               </h1>
               <span className="bg-red-500/10 text-red-400 border border-red-500/30 text-[10px] sm:text-xs px-2 py-0.5 rounded-full font-mono flex items-center space-x-1">
                 <Flame className="w-3 h-3 text-red-500 animate-pulse" />
-                <span>Hype Auditor</span>
+                <span>Hype & Fake News Auditor</span>
               </span>
             </div>
             <p className="text-[11px] text-slate-400 hidden sm:block font-mono">
-              Auditoría Pericial de Afirmaciones Tecnológicas · Deep Research & LLMs Forenses
+              ¿Noticia Real o Puro Humo? · Auditoría Colaborativa & Fact-Checking con IA
             </p>
           </div>
         </div>

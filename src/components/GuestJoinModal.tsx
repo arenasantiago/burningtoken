@@ -9,12 +9,12 @@ interface GuestJoinModalProps {
 }
 
 const SUGGESTED_NICKNAMES = [
-  "Jurado Alpha",
+  "Cazador de Fake News",
+  "Detector de Humo",
   "Fiscal de Startups",
-  "Auditor Cripto",
+  "Jurado Alpha",
+  "Auditor Viral",
   "Perito IA",
-  "Juez Tech",
-  "Verificador Web3",
 ];
 
 export const GuestJoinModal: React.FC<GuestJoinModalProps> = ({
@@ -55,7 +55,7 @@ export const GuestJoinModal: React.FC<GuestJoinModalProps> = ({
               </span>
             </div>
             <p className="text-xs text-slate-400">
-              Personaliza tu identidad para votar y deliberar en el Tribunal.
+              ¿Noticia real o puro marketing? Ingresa tu apodo para deliberar y votar con tus colegas.
             </p>
           </div>
         </div>

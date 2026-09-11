@@ -10,19 +10,24 @@ interface RoomLobbyProps {
 
 const PRESET_CLAIMS = [
   {
+    category: "Noticias Virales & Fake News",
+    title: "Científicos descubren que el ayuno de 3 días regenera el 100% del sistema inmune sin efectos secundarios",
+    source: "https://x.com/viral_wellness/status/1948201",
+  },
+  {
     category: "AI & Startups",
     title: "Agente autónomo que reemplaza a todo tu equipo de ingeniería con 99.9% de precisión",
     source: "https://x.com/tech_hype/status/1832049",
   },
   {
     category: "Cripto & Web3",
-    title: "Nueva blockchain modular con 500,000 TPS y cero comisiones de gas garantizadas por física cuántica",
+    title: "Nueva blockchain cuántica con 500,000 TPS y cero comisiones de gas garantizadas",
     source: "https://linkedin.com/posts/crypto-founder-hype",
   },
   {
-    category: "Hardware & Robótica",
-    title: "Humanoide doméstico que cocina, programa y limpia por $1,500 USD disponible el próximo mes",
-    source: "https://techcrunch.com/robotics-announcement",
+    category: "Ciencia & Hardware",
+    title: "Batería de estado sólido que carga autos eléctricos en 2 minutos y dura 50 años disponible este año",
+    source: "https://techcrunch.com/energy-announcement",
   },
 ];
 
@@ -30,7 +35,7 @@ export const RoomLobby: React.FC<RoomLobbyProps> = ({
   onCreateRoom,
   onJoinRoom,
 }) => {
-  const [roomTitle, setRoomTitle] = useState("Sesión de Auditoría #1");
+  const [roomTitle, setRoomTitle] = useState("¿Noticia Real o Puro Humo?");
   const [claimText, setClaimText] = useState("");
   const [joinCode, setJoinCode] = useState("");
   const [suggestions, setSuggestions] = useState<Array<{ text: string; angle: string; verifiabilityScore: number; reasoning: string }>>([]);
@@ -73,15 +78,15 @@ export const RoomLobby: React.FC<RoomLobbyProps> = ({
       <div className="text-center space-y-4">
         <div className="inline-flex items-center space-x-2 bg-purple-950/70 border border-purple-500/40 px-3.5 py-1.5 rounded-full text-xs text-purple-300 font-mono shadow-lg shadow-purple-950/40">
           <Sparkles className="w-3.5 h-3.5 text-purple-400 animate-spin" style={{ animationDuration: '4s' }} />
-          <span>Tribunal Colaborativo Multijugador · Sincronización en Tiempo Real</span>
+          <span>¿Es Verdad, Fake News o Puro Humo? · Auditoría Colaborativa en Vivo</span>
         </div>
         
         <h2 className="text-3xl sm:text-5xl md:text-6xl font-black text-white tracking-tight leading-tight">
-          Somete el{" "}
+          ¿Promesa Real o{" "}
           <span className="bg-gradient-to-r from-red-500 via-orange-500 to-amber-400 bg-clip-text text-transparent underline decoration-red-500/30">
-            Humo Tecnológico
-          </span>{" "}
-          al Juicio de la Verdad
+            Puro Humo
+          </span>
+          ? Somete Cualquier Afirmación al Juicio de la Verdad
         </h2>
 
         <p className="text-slate-300 max-w-2xl mx-auto text-sm sm:text-base leading-relaxed font-normal">
@@ -101,11 +106,11 @@ export const RoomLobby: React.FC<RoomLobbyProps> = ({
                 <h3 className="font-bold text-white text-base tracking-wide">
                   Crear Nueva Sala de Auditoría
                 </h3>
-                <p className="text-xs text-slate-400">Define el tema y somete una afirmación al tribunal</p>
+                <p className="text-xs text-slate-400">Define el tema y somete una afirmación al juicio en vivo</p>
               </div>
             </div>
             <span className="hidden sm:inline-flex text-[10px] font-mono bg-purple-950 text-purple-300 border border-purple-800/60 px-2 py-0.5 rounded">
-              ATÓMICO CONVEX
+              SALA EN VIVO
             </span>
           </div>
 
@@ -118,7 +123,7 @@ export const RoomLobby: React.FC<RoomLobbyProps> = ({
                 type="text"
                 value={roomTitle}
                 onChange={(e) => setRoomTitle(e.target.value)}
-                placeholder="Ej. Juicio a los VCs y Hype de IA"
+                placeholder="Ej. ¿Fake News o Revolución? Juicio de la Sala"
                 className="w-full bg-slate-950 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition"
                 required
               />
@@ -126,13 +131,13 @@ export const RoomLobby: React.FC<RoomLobbyProps> = ({
 
             <div>
               <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-                Afirmación / Promesa a Someter a Juicio (Claim)
+                Afirmación / Noticia / Promesa a Someter a Juicio
               </label>
               <textarea
                 value={claimText}
                 onChange={(e) => setClaimText(e.target.value)}
                 rows={3}
-                placeholder="Pega aquí la afirmación exagerada de Twitter, LinkedIn o pitch deck que quieres auditar..."
+                placeholder="Pega aquí la noticia viral, tweet, pitch de startup o promesa comercial que quieres auditar..."
                 className="w-full bg-slate-950 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition leading-relaxed"
                 required
               />

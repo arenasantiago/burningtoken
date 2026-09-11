@@ -13,16 +13,16 @@ interface InRoomLobbyProps {
 
 const PRESET_NEXT_CLAIMS = [
   {
-    category: "Hardware & Robótica",
-    title: "Humanoide doméstico que cocina, programa y limpia por $1,500 USD disponible el próximo mes",
+    category: "Viral & Fake News",
+    title: "Agua con sal del Himalaya en ayunas desintoxica metales pesados y cura la hipertensión en 7 días",
   },
   {
     category: "AI & Startups",
     title: "Agente autónomo que reemplaza a todo tu equipo de ingeniería con 99.9% de precisión",
   },
   {
-    category: "Cripto & Web3",
-    title: "Nueva blockchain modular con 500,000 TPS y cero comisiones de gas garantizadas por física cuántica",
+    category: "Hardware & Robótica",
+    title: "Humanoide doméstico que cocina, programa y limpia por $1,500 USD disponible el próximo mes",
   },
 ];
 
@@ -144,7 +144,7 @@ export const InRoomLobby: React.FC<InRoomLobbyProps> = ({
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <label className="text-xs font-mono font-bold text-slate-300 uppercase tracking-wider">
-                Afirmación o Promesa Tecnológica:
+                Noticia, Afirmación o Promesa Comercial:
               </label>
               <button
                 type="button"
@@ -169,7 +169,7 @@ export const InRoomLobby: React.FC<InRoomLobbyProps> = ({
             <textarea
               value={claimText}
               onChange={(e) => setClaimText(e.target.value)}
-              placeholder="Ej: Startup afirma que su nuevo modelo supera a ingenieros senior con 99% de precisión y cero alucinaciones..."
+              placeholder="Pega aquí la noticia viral, tweet, pitch de startup o promesa comercial..."
               rows={3}
               className="w-full bg-slate-950 border border-slate-700 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition resize-none"
               required
