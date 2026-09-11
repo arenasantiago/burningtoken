@@ -71,19 +71,19 @@ export const InRoomLobby: React.FC<InRoomLobbyProps> = ({
   };
 
   return (
-    <div className="bg-tribunal-card/90 backdrop-blur-xl border border-tribunal-border rounded-2xl p-6 sm:p-8 shadow-2xl space-y-6 max-w-4xl mx-auto relative overflow-hidden">
+    <div className="bg-tribunal-card/90 backdrop-blur-xl border border-tribunal-border rounded-2xl p-4 sm:p-6 md:p-8 shadow-2xl space-y-5 sm:space-y-6 max-w-4xl mx-auto relative overflow-hidden">
       {/* Header de la Sala de Espera */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-slate-800 pb-4">
         <div className="flex items-center space-x-2.5">
-          <div className="p-2 bg-purple-950/70 border border-purple-500/40 rounded-xl text-purple-400">
+          <div className="p-2 bg-purple-950/70 border border-purple-500/40 rounded-xl text-purple-400 shrink-0">
             <Scale className="w-5 h-5" />
           </div>
           <div>
-            <h3 className="text-lg font-black text-white flex items-center space-x-2">
+            <h3 className="text-base sm:text-lg font-black text-white flex items-center space-x-2">
               <span>SALA ACTIVA:</span>
               <span className="font-mono text-purple-400">{roomCode}</span>
             </h3>
-            <p className="text-xs text-slate-400 font-mono">
+            <p className="text-[11px] sm:text-xs text-slate-400 font-mono">
               {isHost
                 ? "Eres el Presidente del Tribunal. Define la siguiente afirmación para someterla a juicio."
                 : "Permaneciendo en la sala. Esperando a que el anfitrión lance el siguiente caso."}
@@ -91,7 +91,7 @@ export const InRoomLobby: React.FC<InRoomLobbyProps> = ({
           </div>
         </div>
 
-        <div className="flex items-center space-x-2 bg-slate-900 border border-slate-800 px-3 py-1.5 rounded-full text-xs font-mono text-slate-300">
+        <div className="flex items-center space-x-2 bg-slate-900 border border-slate-800 px-3 py-1.5 rounded-full text-[11px] sm:text-xs font-mono text-slate-300 shrink-0">
           <Radio className="w-3.5 h-3.5 text-emerald-400 animate-pulse" />
           <span>Jurados conectados</span>
         </div>
@@ -99,7 +99,7 @@ export const InRoomLobby: React.FC<InRoomLobbyProps> = ({
 
       {/* Identidad de los participantes */}
       {!isHost ? (
-        <div className="bg-slate-950/60 border border-slate-800/80 rounded-xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+        <div className="bg-slate-950/60 border border-slate-800/80 rounded-xl p-3.5 sm:p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
           <div className="space-y-0.5">
             <div className="text-xs font-bold text-slate-200 flex items-center space-x-1.5">
               <UserCheck className="w-4 h-4 text-purple-400" />
@@ -110,14 +110,14 @@ export const InRoomLobby: React.FC<InRoomLobbyProps> = ({
             </p>
           </div>
 
-          <form onSubmit={handleSaveNick} className="flex items-center space-x-2 w-full sm:w-auto">
+          <form onSubmit={handleSaveNick} className="flex flex-col xs:flex-row items-stretch xs:items-center gap-2 w-full sm:w-auto">
             <input
               type="text"
               value={editingNick}
               onChange={(e) => setEditingNick(e.target.value)}
               placeholder="Tu apodo"
               maxLength={25}
-              className="bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white font-mono focus:outline-none focus:border-purple-500"
+              className="bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white font-mono focus:outline-none focus:border-purple-500 w-full xs:w-44 sm:w-48"
             />
             <button
               type="submit"
@@ -223,7 +223,7 @@ export const InRoomLobby: React.FC<InRoomLobbyProps> = ({
 
           <button
             type="submit"
-            className="w-full bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-600 hover:from-purple-500 hover:to-indigo-500 text-white font-extrabold py-3.5 px-6 rounded-xl flex items-center justify-center space-x-2 shadow-xl shadow-purple-600/30 transition transform hover:-translate-y-0.5 active:scale-95 text-sm"
+            className="w-full bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-600 hover:from-purple-500 hover:to-indigo-500 text-white font-extrabold py-3 sm:py-3.5 px-4 sm:px-6 rounded-xl flex items-center justify-center space-x-2 shadow-xl shadow-purple-600/30 transition transform hover:-translate-y-0.5 active:scale-95 text-xs sm:text-sm"
           >
             <span>Lanzar Votación del Nuevo Caso a la Sala</span>
             <ArrowRight className="w-4 h-4" />

@@ -83,7 +83,7 @@ export const VerdictReport: React.FC<VerdictReportProps> = ({
   const sourceLabel = (value: "live" | "demo") => value === "live" ? "Real" : "Demo";
 
   return (
-    <div className="bg-tribunal-card border border-tribunal-border rounded-xl p-6 shadow-2xl space-y-6 max-w-4xl mx-auto">
+    <div className="bg-tribunal-card border border-tribunal-border rounded-xl p-4 sm:p-6 md:p-8 shadow-2xl space-y-6 max-w-4xl mx-auto">
       <div className={`rounded-lg border p-3 text-xs space-y-1 ${
         hasLiveAudit
           ? "bg-emerald-950/30 border-emerald-800 text-emerald-200"
@@ -118,7 +118,7 @@ export const VerdictReport: React.FC<VerdictReportProps> = ({
             <div className="inline-block bg-amber-950/40 border-2 border-amber-600 rounded-2xl px-6 py-4">
               <div className="flex items-center justify-center space-x-3 text-amber-300">
                 <AlertOctagon className="w-8 h-8 shrink-0" />
-                <span className="text-2xl sm:text-4xl font-black tracking-tight text-white uppercase">
+                <span className="text-xl sm:text-3xl md:text-4xl font-black tracking-tight text-white uppercase">
                   {resultLabel}
                 </span>
               </div>
@@ -132,7 +132,7 @@ export const VerdictReport: React.FC<VerdictReportProps> = ({
             <div className="inline-block bg-red-950/60 border-2 border-red-500 rounded-2xl px-6 py-4 shadow-xl shadow-red-500/20">
               <div className="flex items-center justify-center space-x-3 text-red-400">
                 <Flame className="w-8 h-8 text-red-500 animate-bounce" />
-                <span className="text-2xl sm:text-4xl font-black tracking-tight text-white uppercase">
+                <span className="text-xl sm:text-3xl md:text-4xl font-black tracking-tight text-white uppercase">
                   CERTIFIED SMOKE · PURO HUMO
                 </span>
               </div>
@@ -146,7 +146,7 @@ export const VerdictReport: React.FC<VerdictReportProps> = ({
             <div className="inline-block bg-amber-950/60 border-2 border-amber-500 rounded-2xl px-6 py-4 shadow-xl shadow-amber-500/20">
               <div className="flex items-center justify-center space-x-3 text-amber-400">
                 <AlertOctagon className="w-8 h-8 text-amber-500" />
-                <span className="text-2xl sm:text-4xl font-black tracking-tight text-white uppercase">
+                <span className="text-xl sm:text-3xl md:text-4xl font-black tracking-tight text-white uppercase">
                   PLAUSIBLE CON RESERVAS
                 </span>
               </div>
@@ -160,7 +160,7 @@ export const VerdictReport: React.FC<VerdictReportProps> = ({
             <div className="inline-block bg-emerald-950/60 border-2 border-emerald-500 rounded-2xl px-6 py-4 shadow-xl shadow-emerald-500/20">
               <div className="flex items-center justify-center space-x-3 text-emerald-400">
                 <ShieldCheck className="w-8 h-8 text-emerald-500" />
-                <span className="text-2xl sm:text-4xl font-black tracking-tight text-white uppercase">
+                <span className="text-xl sm:text-3xl md:text-4xl font-black tracking-tight text-white uppercase">
                   VERIFIED LEGIT · SUSTENTADO
                 </span>
               </div>
@@ -297,7 +297,7 @@ export const VerdictReport: React.FC<VerdictReportProps> = ({
 
           <button
             onClick={onOpenPaywall}
-            className={`shrink-0 px-4 py-2.5 rounded-xl text-xs font-bold transition flex items-center space-x-2 shadow-lg ${
+            className={`shrink-0 w-full sm:w-auto justify-center px-4 py-2.5 rounded-xl text-xs font-bold transition flex items-center space-x-2 shadow-lg ${
               hasProAccess
                 ? "bg-amber-500/20 text-amber-300 border border-amber-500/50 hover:bg-amber-500/30"
                 : "bg-gradient-to-r from-amber-500 to-yellow-600 hover:from-amber-400 hover:to-yellow-500 text-slate-950 shadow-amber-500/20"
@@ -305,14 +305,14 @@ export const VerdictReport: React.FC<VerdictReportProps> = ({
           >
             {hasProAccess ? (
               <>
-                <ShieldCheck className="w-4 h-4 text-amber-400" />
+                <ShieldCheck className="w-4 h-4 text-amber-400 shrink-0" />
                 <span>Ver Dossier VC Desbloqueado</span>
               </>
             ) : (
               <>
-                <Lock className="w-4 h-4" />
+                <Lock className="w-4 h-4 shrink-0" />
                 <span>Desbloquear Funciones Pro</span>
-                <ArrowRight className="w-4 h-4" />
+                <ArrowRight className="w-4 h-4 shrink-0" />
               </>
             )}
           </button>
@@ -353,13 +353,13 @@ export const VerdictReport: React.FC<VerdictReportProps> = ({
             onClick={onNewClaim}
             className="w-full sm:w-auto bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-600 hover:from-purple-500 hover:to-indigo-500 text-white font-extrabold px-6 py-3 rounded-xl flex items-center justify-center space-x-2 shadow-lg shadow-purple-600/30 transition transform hover:-translate-y-0.5 active:scale-95 text-xs font-mono"
           >
-            <Scale className="w-4 h-4 text-purple-200" />
+            <Scale className="w-4 h-4 text-purple-200 shrink-0" />
             <span>Auditar Siguiente Caso en esta Sala</span>
           </button>
         ) : (
-          <div className="text-xs font-mono text-purple-300 bg-purple-950/40 border border-purple-800/40 px-4 py-2.5 rounded-xl flex items-center space-x-2">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
-            <span>Esperando a que el Host inicie el siguiente caso en esta sala...</span>
+          <div className="w-full sm:w-auto text-xs font-mono text-purple-300 bg-purple-950/40 border border-purple-800/40 px-4 py-2.5 rounded-xl flex items-center justify-center space-x-2">
+            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping shrink-0" />
+            <span>Esperando a que el Host inicie el siguiente caso...</span>
           </div>
         )}
       </div>

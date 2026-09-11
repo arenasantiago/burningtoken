@@ -35,8 +35,8 @@ export const GuestJoinModal: React.FC<GuestJoinModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
-      <div className="relative w-full max-w-md bg-tribunal-card border border-purple-500/40 rounded-2xl p-6 sm:p-7 shadow-2xl shadow-purple-950/80 space-y-5">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200 overflow-y-auto">
+      <div className="relative w-full max-w-md bg-tribunal-card border border-purple-500/40 rounded-2xl p-5 sm:p-7 shadow-2xl shadow-purple-950/80 space-y-4 sm:space-y-5 max-h-[90vh] overflow-y-auto my-auto">
         {/* Glow */}
         <div className="absolute -top-16 -left-16 w-40 h-40 bg-purple-600/20 blur-3xl rounded-full pointer-events-none" />
 

@@ -315,7 +315,7 @@ export function App() {
   return (
     <div className="min-h-screen bg-tribunal-dark bg-cyber-grid flex flex-col selection:bg-purple-600 selection:text-white relative overflow-x-hidden">
       {/* Ambient background glow */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] sm:w-[900px] h-[300px] sm:h-[400px] bg-purple-600/10 blur-[140px] rounded-full pointer-events-none -z-10" />
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[320px] sm:w-[600px] lg:w-[900px] h-[200px] sm:h-[400px] bg-purple-600/10 blur-[100px] sm:blur-[140px] rounded-full pointer-events-none -z-10" />
 
       {/* Header global */}
       <Header
@@ -328,7 +328,7 @@ export function App() {
       />
 
       {/* Main Stage */}
-      <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 space-y-8 z-10">
+      <main className="flex-1 max-w-7xl w-full mx-auto p-3 sm:p-6 space-y-6 sm:space-y-8 z-10">
         {/* Vista 1: Lobby Inicial */}
         {!activeRoomCode && (
           <RoomLobby

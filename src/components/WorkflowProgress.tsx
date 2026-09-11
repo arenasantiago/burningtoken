@@ -55,7 +55,7 @@ export const WorkflowProgress: React.FC<WorkflowProgressProps> = ({
   const isRecovered = currentStep === "recovered_from_failure";
 
   return (
-    <div className="bg-tribunal-card border border-tribunal-border rounded-xl p-6 shadow-xl space-y-6 max-w-4xl mx-auto">
+    <div className="bg-tribunal-card border border-tribunal-border rounded-xl p-4 sm:p-6 shadow-xl space-y-5 sm:space-y-6 max-w-4xl mx-auto">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800 pb-3">
         <div className="flex items-center space-x-2">
@@ -167,7 +167,7 @@ export const WorkflowProgress: React.FC<WorkflowProgressProps> = ({
 
         <button
           onClick={onTriggerFailureSimulation}
-          className={`shrink-0 px-3.5 py-2.5 rounded-lg text-xs font-bold border transition flex items-center space-x-1.5 active:scale-95 ${
+          className={`shrink-0 w-full sm:w-auto justify-center px-3.5 py-2.5 rounded-lg text-xs font-bold border transition flex items-center space-x-1.5 active:scale-95 ${
             simulatedFailureTriggered
               ? "bg-amber-500/20 text-amber-300 border-amber-500 cursor-default"
               : "bg-red-950/30 hover:bg-red-900/40 text-red-300 border-red-800 hover:border-red-600 shadow-md"

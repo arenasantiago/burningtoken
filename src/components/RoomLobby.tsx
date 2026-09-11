@@ -73,15 +73,15 @@ export const RoomLobby: React.FC<RoomLobbyProps> = ({
   };
 
   return (
-    <div className="max-w-5xl mx-auto py-8 px-4 space-y-10">
+    <div className="max-w-5xl mx-auto py-5 sm:py-8 px-3 sm:px-4 space-y-6 sm:space-y-10">
       {/* Hero Banner */}
-      <div className="text-center space-y-4">
-        <div className="inline-flex items-center space-x-2 bg-purple-950/70 border border-purple-500/40 px-3.5 py-1.5 rounded-full text-xs text-purple-300 font-mono shadow-lg shadow-purple-950/40">
-          <Sparkles className="w-3.5 h-3.5 text-purple-400 animate-spin" style={{ animationDuration: '4s' }} />
+      <div className="text-center space-y-3 sm:space-y-4">
+        <div className="inline-flex items-center space-x-2 bg-purple-950/70 border border-purple-500/40 px-3 sm:px-3.5 py-1.5 rounded-full text-[11px] sm:text-xs text-purple-300 font-mono shadow-lg shadow-purple-950/40">
+          <Sparkles className="w-3.5 h-3.5 text-purple-400 animate-spin shrink-0" style={{ animationDuration: '4s' }} />
           <span>¿Es Verdad, Fake News o Puro Humo? · Auditoría Colaborativa en Vivo</span>
         </div>
 
-        <h2 className="text-3xl sm:text-5xl md:text-6xl font-black text-white tracking-tight leading-tight">
+        <h2 className="text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-black text-white tracking-tight leading-tight">
           ¿Promesa Real o{" "}
           <span className="bg-gradient-to-r from-red-500 via-orange-500 to-amber-400 bg-clip-text text-transparent underline decoration-red-500/30">
             Puro Humo
@@ -89,14 +89,14 @@ export const RoomLobby: React.FC<RoomLobbyProps> = ({
           ? Somete Cualquier Afirmación al Juicio de la Verdad
         </h2>
 
-        <p className="text-slate-300 max-w-2xl mx-auto text-sm sm:text-base leading-relaxed font-normal">
+        <p className="text-slate-300 max-w-2xl mx-auto text-xs sm:text-sm md:text-base leading-relaxed font-normal">
           Crea una sala colaborativa, invita a tus colegas, voten en vivo si una promesa es real o puro marketing, y despliega un escuadrón autónomo de investigación profunda.
         </p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 sm:gap-6 items-start">
         {/* Formulario Crear Sala y Claim */}
-        <div className="lg:col-span-2 bg-slate-900/80 border border-purple-500/20 rounded-2xl p-6 sm:p-7 shadow-2xl backdrop-blur-md space-y-5 glow-purple">
+        <div className="lg:col-span-2 bg-slate-900/80 border border-purple-500/20 rounded-2xl p-4 sm:p-6 lg:p-7 shadow-2xl backdrop-blur-md space-y-5 glow-purple">
           <div className="flex items-center justify-between border-b border-slate-800 pb-3.5">
             <div className="flex items-center space-x-2.5">
               <div className="p-2 bg-red-500/10 border border-red-500/30 rounded-lg text-red-400">
@@ -241,7 +241,7 @@ export const RoomLobby: React.FC<RoomLobbyProps> = ({
         </div>
 
         {/* Unirse a Sala Existente */}
-        <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-6 shadow-xl flex flex-col justify-between space-y-5 backdrop-blur-md">
+        <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 sm:p-6 shadow-xl flex flex-col justify-between space-y-5 backdrop-blur-md">
           <div className="space-y-4">
             <div className="flex items-center space-x-2.5 border-b border-slate-800 pb-3.5">
               <div className="p-2 bg-purple-500/10 border border-purple-500/30 rounded-lg text-purple-400">

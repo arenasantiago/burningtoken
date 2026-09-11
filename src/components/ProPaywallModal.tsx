@@ -31,8 +31,8 @@ export const ProPaywallModal: React.FC<ProPaywallModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in">
-      <div className="bg-tribunal-card border border-amber-500/40 rounded-2xl max-w-xl w-full p-6 shadow-2xl relative space-y-6">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-3 sm:p-4 animate-in fade-in overflow-y-auto">
+      <div className="bg-tribunal-card border border-amber-500/40 rounded-2xl max-w-xl w-full p-5 sm:p-6 shadow-2xl relative space-y-5 sm:space-y-6 max-h-[90vh] overflow-y-auto my-auto">
         {/* Botón cerrar */}
         <button
           onClick={onClose}

@@ -83,7 +83,7 @@ const EvidenceCard: React.FC<{ item: EvidenceItem }> = ({ item }) => {
         </div>
       )}
       <div className="flex flex-wrap items-center justify-between gap-2 text-[10px] text-slate-400 border-t border-slate-900 pt-2">
-        <span className="font-mono truncate max-w-[200px]" title={item.queryUsed}>Query: {item.queryUsed}</span>
+        <span className="font-mono truncate max-w-[140px] sm:max-w-[200px]" title={item.queryUsed}>Query: {item.queryUsed}</span>
         {assessment === "supports" ? (
           <span className="text-emerald-400 flex items-center space-x-1">
             <CheckCircle2 className="w-3 h-3" />
@@ -114,7 +114,7 @@ export const EvidenceBoard: React.FC<EvidenceBoardProps> = ({ evidenceList, rese
   const followUpItems = evidenceList.filter((e) => e.step === "follow_up_contrast");
 
   return (
-    <div className="bg-tribunal-card border border-tribunal-border rounded-xl p-6 shadow-xl space-y-6 max-w-4xl mx-auto">
+    <div className="bg-tribunal-card border border-tribunal-border rounded-xl p-4 sm:p-6 shadow-xl space-y-5 sm:space-y-6 max-w-4xl mx-auto">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800 pb-3">
         <div className="flex items-center space-x-2">
