@@ -14,6 +14,8 @@ El sistema somete cualquier *claim* al juicio de una audiencia distribuida y a u
 
 Esta descripción y el diagrama expresan el objetivo del producto. El estado comprobable del código, las simulaciones y los siguientes incrementos se registran en [docs/IMPLEMENTATION_STATUS.md](docs/IMPLEMENTATION_STATUS.md). La presencia de una integración o una pantalla no acredita por sí sola el cumplimiento de un reto.
 
+Para retomar el trabajo, leer también [docs/PROJECT_MEMORY.md](docs/PROJECT_MEMORY.md): resume la dirección del producto, el contexto del usuario y las brechas observadas. El código y las comprobaciones fechadas prevalecen sobre resúmenes anteriores.
+
 ### Estados de trabajo
 
 - **Implementado:** existe código para la función descrita; no implica que se haya probado con servicios reales.

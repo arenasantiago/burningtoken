@@ -1,6 +1,6 @@
 # Estado de implementación — Truth Tribunal
 
-Última revisión documental: **2026-09-08**. Alcance inicial: lectura del repositorio local; no acredita el estado del sitio desplegado ni ejecuciones de proveedores. Los seis requisitos de sponsors y las invariantes de [AGENTS.md](../AGENTS.md) se mantienen.
+Última revisión documental: **2026-09-11**. Alcance de esta revisión: documentación y lectura del código local; no acredita el estado actual del sitio desplegado ni nuevas ejecuciones de proveedores. Los seis requisitos de sponsors y las invariantes de [AGENTS.md](../AGENTS.md) se mantienen.
 
 ## Cómo leer este registro
 
@@ -47,18 +47,22 @@ Resultado implementado: la segunda consulta se deriva de los hallazgos guardados
 
 La planificación de brechas usa heurísticas de cobertura textual explícitas, no demuestra exhaustividad. La inferencia usa `Qwen/Qwen3-30B-A3B-Instruct-2507` en Nebius por defecto, configurable con `NEBIUS_MODEL`. Tokens proceden de `usage`; latencia corresponde sólo a la petición de inferencia. Costo y confianza todavía aparecen como no disponibles. Los registros antiguos sin procedencia muestran origen desconocido y no se presentan como una conclusión verificada.
 
-### 3. Conectar una recuperación real de Render — implementado; verificado localmente
+### 3. Conectar una recuperación real de Render — parcial; integración real pendiente
 
 Alcance: ejecutar la auditoría con estado persistente, checkpoints y deduplicación estricta de evidencias.
+
+Corrección documental (2026-09-11): los checkpoints y la deduplicación presentes en Convex no prueban una ejecución en Render. `src/App.tsx` invoca `executeFullAudit` directamente; `workflows/auditor_workflow.ts` conserva pasos externos vacíos y un `Set` en memoria. La recuperación completa sigue pendiente de conexión y evidencia.
 
 Criterios de aceptación:
 - La mutación `add` en `convex/evidence.ts` deduplica evidencias por `url` e `investigationId`, evitando duplicación de registros ante reintentos.
 - La tabla `investigations` registra `completedCheckpoints` persistentes para reanudar pasos completados sin repetir búsquedas.
 - Al inducir una falla controlada, se registra el evento en los diagnósticos del worker y la recuperación retoma desde el último checkpoint.
 
-### 4. Cerrar compra sandbox, exportación pericial y Asistente de Prompts — implementado; verificado localmente
+### 4. Compra sandbox, exportación y Asistente de Prompts — parcial; compra verificada pendiente
 
 Alcance: habilitar Pro por una compra comprobada en Test Store, exportar el Dossier VC clasificado y dotar al tribunal de un Asistente Pericial de Prompts.
+
+Corrección documental (2026-09-11): el asistente y la descarga Markdown están implementados, pero no se acredita una compra verificada. `useRevenueCat.ts` fuerza Pro con `hasEntitlement || true` y concede acceso tras fallos; `grantProAccess` no verifica la compra en backend. `ProPaywallModal.tsx` exporta el claim junto con riesgos prefijados y textos de verificación que el flujo no garantiza. El dossier es demostrativo, no una evaluación de riesgo derivada de las fuentes.
 
 Criterios de aceptación:
 - Compra de `pro_auditor_monthly` y entitlement `pro_auditor_access` verificados mediante RevenueCat Web SDK.
@@ -66,6 +70,15 @@ Criterios de aceptación:
 - Asistente Pericial de Prompts (`convex/lib/claimSuggestions.ts` y action `suggestAuditableClaims`): propone 2 a 3 formulaciones empíricas, objetivas y contrastables cuando el usuario introduce un claim ambiguo o metafísico (en el Lobby) o cuando una auditoría termina en `INSUFFICIENT_EVIDENCE` (en el VerdictReport), eliminando callejones sin salida negativos.
 
 ## Registro de comprobaciones
+
+### Cierre documental — 2026-09-11
+
+Alcance: README orientado a producto, memoria persistente en `PROJECT_MEMORY.md`, enlace desde AGENTS y corrección de estados de Render/RevenueCat mediante lectura del código. No se modificó código de aplicación.
+
+- En Windows/PowerShell, enlaces locales de README y memoria comprobados: todos existen. `git diff --check` sin errores de whitespace; Git advierte conversión de LF a CRLF.
+- `npm run build`: aprobado tras reintentar fuera del sandbox por un bloqueo de acceso de esbuild. TypeScript sin errores; Vite advierte un chunk superior a 500 kB (bundle JS de 1.212,44 kB sin gzip). Esa advertencia queda pendiente de optimización.
+- `npx convex dev --once`: aprobado tras reintentar fuera del sandbox por bloqueo de red. Funciones listas en el deployment de desarrollo `brave-lemur-868`. Este comando valida y despliega backend; no se publicaron assets del frontend.
+- No se repitió la suite de pruebas ni se ejecutaron compras, investigación real, recuperación Render o recorrido multisesión en esta revisión documental. Los resultados históricos siguientes conservan su alcance original.
 
 | Fecha | Entorno | Alcance | Evidencia y resultado |
 |---|---|---|---|
@@ -90,3 +103,26 @@ Pendiente para cerrar verificación de producto: prueba multisesión simultánea
 
 La suite usa importación TypeScript nativa y requiere Node 24 en este entorno. El script `--live` consume cuota de proveedores y deja un cache local ignorado por Git, sin credenciales. `--live --reuse-research` reutiliza las búsquedas guardadas y lo identifica como replay; no acredita otra ejecución completa en vivo. [Plan de entrega y fuentes oficiales](HACKATHON_PLAN.md).
 
+## Incremento UX de host e invitado — 2026-09-11
+
+Implementado: navegación Atrás/Adelante sincronizada con la sala; creación con título opcional; acceso por código prioritario en móvil; apodo guardado reutilizable y edición centralizada en cabecera; salida disponible durante todas las etapas; errores visibles y bloqueo de envíos mientras se procesan; etapas del caso explícitas; audio del resultado sin duplicación local; conservación de porcentajes reales de cero; rechazo de votos para casos cerrados o inactivos en backend.
+
+Responsive y accesibilidad: cabecera adaptable, objetivos táctiles de 44 px en móvil, campos de 16 px, etiquetas asociadas a formularios, foco visible, navegación de teclado dentro del diálogo de apodo, cancelación de edición sin salir, respeto a movimiento reducido y ejemplos sin truncamiento de una sola línea.
+
+Criterios de aceptación y evidencia (Windows, Node 24, frontend Vite local y Convex `brave-lemur-868`, 2026-09-11):
+- `npm test`: 60/60 aprobadas. Cinco pruebas nuevas ejercitan los handlers de votos con persistencia sustituida: cierre por etapa, caso anterior y cambio de voto sin duplicación con extremos 0/100.
+- `npm run build`: TypeScript y Vite correctos. Persiste advertencia de chunk mayor a 500 kB (aprox. 1.21 MB antes de gzip); no es una advertencia de tipos.
+- `npx convex dev --once`: funciones validadas y desplegadas en el backend de desarrollo configurado. Frontend público no publicado por este incremento.
+- Navegador, dos pestañas simultáneas con identidades de sesión distintas, sala de prueba `HYPE-260`: creación sin título, host vota Sólido (0% humo), invitado entra como `Jurado UX` y vota Humo (50%), cambia a Sólido (0%); ambos clientes conservan dos votos. Atrás vuelve al inicio y Adelante recupera host y votos.
+- La misma sala pasó de votación a investigación en ambas sesiones, mostró fuentes y posteriormente resultado. El host abrió la preparación del siguiente caso y el invitado mostró la espera conservando apodo. Esto verifica transiciones de UX, no precisión del resultado ni cumplimiento de Render o RevenueCat.
+- Revisión visual en 375x812 y 320x740: cabecera, votación y diálogo de apodo utilizables; ancho de documento 360 y 305 px respectivamente (barra de desplazamiento incluida en el viewport), sin desbordamiento horizontal del documento observado. Revisión desktop en tamaño normal del navegador.
+- Los intentos iniciales de build/test/Vite y conexión Convex quedaron bloqueados por permisos del sandbox; las ejecuciones autorizadas fuera del sandbox pasaron.
+
+Límites: no se verificaron compra sandbox, recuperación real de Render, lectores de pantalla, dispositivos físicos ni todas las combinaciones de tamaños y estados de error. La prueba multisesión de este incremento no es una grabación del video de entrega. Los cambios documentales de organización que ya estaban en curso se conservaron.
+
+Segunda ronda comprobada en la misma sala: nuevo texto visible para el invitado, cero votos y apodo conservado, sin volver a pedir acreditación.
+
+## Publicación solicitada — 2026-09-11
+
+Backend: `npx convex dev --once` completado en `brave-lemur-868` (deployment configurado de desarrollo que sirve la URL pública). Frontend: `npx @convex-dev/static-hosting upload` completado, deployment `3373e891-4b4c-4916-a0df-ca5212d6cf80`, JS `index-BsqaqXJ7.js` y CSS `index-CbU-xpxA.css`. Se publica el build validado del incremento UX; 60 pruebas y recorrido de dos sesiones registrados arriba. No se completaron Render real ni compra RevenueCat con esta publicación.
+Verificación posterior: GET de https://brave-lemur-868.convex.site respondió HTTP 200 y su HTML referencia exactamente los assets JS/CSS del build publicado.

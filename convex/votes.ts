@@ -10,6 +10,10 @@ export const cast = mutation({
     choice: v.union(v.literal("SMOKE"), v.literal("LEGIT")),
   },
   handler: async (ctx, args) => {
+    const room = await ctx.db.get(args.roomId);
+    if (!room || room.status !== "voting" || room.activeClaimId !== args.claimId) {
+      throw new Error("La votación de este caso ya está cerrada.");
+    }
     // Verificar si ya votó
     const existing = await ctx.db
       .query("votes")

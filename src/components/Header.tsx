@@ -8,6 +8,7 @@ interface HeaderProps {
   onPlayGavel: () => void;
   nickname?: string;
   onEditNickname?: () => void;
+  onLeaveRoom?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -17,19 +18,26 @@ export const Header: React.FC<HeaderProps> = ({
   onPlayGavel,
   nickname,
   onEditNickname,
+  onLeaveRoom,
 }) => {
   const [copied, setCopied] = React.useState(false);
 
-  const handleCopyLink = () => {
+  const [copyError, setCopyError] = React.useState(false);
+  const handleCopyLink = async () => {
     if (!roomCode) return;
-    navigator.clipboard.writeText(`${window.location.origin}?room=${roomCode}`);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    setCopyError(false);
+    const link = new URL(window.location.href);
+    link.searchParams.set("room", roomCode);
+    try {
+      await navigator.clipboard.writeText(link.toString());
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch { setCopyError(true); }
   };
 
   return (
     <header className="border-b border-purple-900/30 bg-slate-950/85 backdrop-blur-md sticky top-0 z-40 px-3 sm:px-4 py-2.5 sm:py-3 shadow-xl shadow-black/40 transition">
-      <div className="max-w-7xl mx-auto flex items-center justify-between gap-2 sm:gap-3">
+      <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3">
         {/* Logo & Title */}
         <div className="flex items-center space-x-2 sm:space-x-3 min-w-0">
           <button
@@ -64,7 +72,7 @@ export const Header: React.FC<HeaderProps> = ({
         </div>
 
         {/* Status, Room & Pro Controls */}
-        <div className="flex items-center space-x-1.5 sm:space-x-2.5 md:space-x-3 shrink-0">
+        <div className="flex flex-wrap items-center gap-2 w-full lg:w-auto">
           {/* Badge WebSocket en vivo */}
           <div className="hidden lg:inline-flex items-center space-x-1.5 bg-emerald-950/50 border border-emerald-500/30 text-emerald-300 text-[10px] font-mono px-2.5 py-1 rounded-full shadow-sm">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span>
@@ -81,26 +89,30 @@ export const Header: React.FC<HeaderProps> = ({
               </span>
               <button
                 onClick={handleCopyLink}
-                title="Copiar enlace para abrir en otro navegador (Multiplayer)"
-                className="text-slate-400 hover:text-white transition p-0.5 sm:p-1 hover:bg-slate-800 rounded"
+                aria-label="Copiar enlace de invitación"
+                title="Copiar enlace de invitación"
+                className="text-slate-400 hover:text-white transition min-h-11 min-w-11 flex items-center justify-center hover:bg-slate-800 rounded"
               >
                 {copied ? <Check className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-emerald-400" /> : <Copy className="w-3 h-3 sm:w-3.5 sm:h-3.5" />}
               </button>
             </div>
           )}
 
+          <span role="status" className="text-xs text-emerald-300">{copied ? "Enlace copiado" : ""}</span>
           {/* Nickname del Jurado */}
           {nickname && (
             <button
               onClick={onEditNickname}
               title="Tu nombre en el tribunal (haz clic para editar)"
-              className="hidden md:flex items-center space-x-1.5 bg-slate-900 border border-slate-700/80 hover:border-purple-500/60 rounded-lg px-2.5 py-1 text-xs font-mono text-slate-300 transition"
+              disabled={!onEditNickname}
+              className="flex min-h-11 items-center space-x-1.5 bg-slate-900 border border-slate-700/80 hover:border-purple-500/60 rounded-lg px-2.5 py-1 text-xs font-mono text-slate-300 transition"
             >
               <span className="text-purple-400">👤</span>
               <span className="font-semibold max-w-[100px] lg:max-w-[130px] truncate">{nickname}</span>
             </button>
           )}
 
+          {onLeaveRoom && <button onClick={onLeaveRoom} className="min-h-11 px-3 text-xs text-slate-300 hover:text-white">Salir de la sala</button>}
           {/* RevenueCat Pro Entitlement Status */}
           <button
             onClick={onOpenPaywall}
@@ -126,6 +138,7 @@ export const Header: React.FC<HeaderProps> = ({
           </button>
         </div>
       </div>
+      {copyError && <p role="alert" className="max-w-7xl mx-auto text-xs text-amber-300 pt-2">No pudimos copiar el enlace. Comparte el código {roomCode} o la dirección del navegador.</p>}
     </header>
   );
 };

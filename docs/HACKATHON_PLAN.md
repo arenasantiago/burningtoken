@@ -46,3 +46,7 @@ Cada fila es un objetivo, no una tarea ya verificada ni una automatización. Cer
 ## Dependencias de próximos incrementos
 
 Convex CLI autenticado y claves locales Linkup/Nebius disponibles para comprobaciones. La presencia de variables no demuestra configuración equivalente en Convex Cloud. Acceso a Render Workflows y configuración de RevenueCat (offering, producto, entitlement y verificación backend) aún por comprobar. Ningún requisito obliga a pedir secretos por chat.
+
+## Actualización de estrategia — 2026-09-11
+
+El [plan de cierre competitivo](FINAL_PUSH_PLAN.md) reemplaza la secuencia propuesta anterior para el trabajo restante: Render real, compra RevenueCat verificada, pruebas y video. La web pública reconfirma el cierre general del 13/09 a las 23:59 ART, pero la discrepancia con el contador temprano y la elegibilidad actual de Render/RevenueCat quedan pendientes de comprobar en el dashboard autenticado. Objetivo interno: enviar el 12/09 a las 20:00 Bogotá. No se creó ni envió una entrega en esta revisión.

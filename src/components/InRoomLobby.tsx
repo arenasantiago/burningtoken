@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Sparkles, Radio, Wand2, Loader2, ArrowRight, UserCheck, Scale } from "lucide-react";
+import { Sparkles, Radio, Wand2, Loader2, ArrowRight, Scale } from "lucide-react";
 import { useAction } from "convex/react";
 import { api } from "../../convex/_generated/api";
 
@@ -7,8 +7,7 @@ interface InRoomLobbyProps {
   roomCode: string;
   isHost: boolean;
   nickname: string;
-  onUpdateNickname: (name: string) => void;
-  onLaunchNextClaim: (claimText: string) => void;
+  onLaunchNextClaim: (claimText: string) => void | Promise<void>;
 }
 
 const PRESET_NEXT_CLAIMS = [
@@ -30,12 +29,12 @@ export const InRoomLobby: React.FC<InRoomLobbyProps> = ({
   roomCode,
   isHost,
   nickname,
-  onUpdateNickname,
   onLaunchNextClaim,
 }) => {
   const [claimText, setClaimText] = useState("");
-  const [editingNick, setEditingNick] = useState(nickname);
-  const [nickSaved, setNickSaved] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const submitting = React.useRef(false);
   const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false);
   const [suggestions, setSuggestions] = useState<Array<{ text: string; angle: string; verifiabilityScore: number; reasoning: string }>>([]);
 
@@ -48,26 +47,22 @@ export const InRoomLobby: React.FC<InRoomLobbyProps> = ({
       const results = await suggestClaimsAction({ draftText: claimText });
       setSuggestions(results);
     } catch (err) {
-      console.warn("Error getting claim suggestions:", err);
+      setError("El asistente no está disponible. Puedes continuar con tu texto original.");
     } finally {
       setIsLoadingSuggestions(false);
     }
   };
 
-  const handleSaveNick = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (editingNick.trim()) {
-      onUpdateNickname(editingNick.trim());
-      setNickSaved(true);
-      setTimeout(() => setNickSaved(false), 2000);
-    }
-  };
 
-  const handleSubmitClaim = (e: React.FormEvent) => {
+  const handleSubmitClaim = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (claimText.trim()) {
-      onLaunchNextClaim(claimText.trim());
-    }
+    if (!claimText.trim() || submitting.current) return;
+    submitting.current = true;
+    setIsSubmitting(true);
+    setError(null);
+    try { await onLaunchNextClaim(claimText.trim()); }
+    catch (err) { setError(err instanceof Error ? err.message : "No pudimos abrir el caso. Intenta de nuevo."); }
+    finally { submitting.current = false; setIsSubmitting(false); }
   };
 
   return (
@@ -97,53 +92,13 @@ export const InRoomLobby: React.FC<InRoomLobbyProps> = ({
         </div>
       </div>
 
-      {/* Identidad de los participantes */}
-      {!isHost ? (
-        <div className="bg-slate-950/60 border border-slate-800/80 rounded-xl p-3.5 sm:p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-          <div className="space-y-0.5">
-            <div className="text-xs font-bold text-slate-200 flex items-center space-x-1.5">
-              <UserCheck className="w-4 h-4 text-purple-400" />
-              <span>Tu Identidad en el Jurado (Nickname):</span>
-            </div>
-            <p className="text-[11px] text-slate-400">
-              Este nombre aparecerá en el feed de votaciones en vivo y en los reportes del tribunal.
-            </p>
-          </div>
-
-          <form onSubmit={handleSaveNick} className="flex flex-col xs:flex-row items-stretch xs:items-center gap-2 w-full sm:w-auto">
-            <input
-              type="text"
-              value={editingNick}
-              onChange={(e) => setEditingNick(e.target.value)}
-              placeholder="Tu apodo"
-              maxLength={25}
-              className="bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white font-mono focus:outline-none focus:border-purple-500 w-full xs:w-44 sm:w-48"
-            />
-            <button
-              type="submit"
-              className="bg-purple-900/60 hover:bg-purple-800 border border-purple-600/50 text-purple-200 px-3 py-1.5 rounded-lg text-xs font-semibold transition shrink-0"
-            >
-              {nickSaved ? "¡Guardado!" : "Actualizar"}
-            </button>
-          </form>
-        </div>
-      ) : (
-        <div className="bg-purple-950/20 border border-purple-900/40 rounded-xl px-4 py-2.5 flex items-center justify-between">
-          <div className="flex items-center space-x-2 text-xs text-slate-300">
-            <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-            <span>Identidad en la sesión:</span>
-            <span className="font-mono font-bold text-purple-300">Host (Presidente del Tribunal)</span>
-          </div>
-          <span className="text-[11px] font-mono text-slate-500">Control de sala activo</span>
-        </div>
-      )}
-
       {/* VISTA DEL HOST: Formulación del siguiente claim */}
       {isHost ? (
         <form onSubmit={handleSubmitClaim} className="space-y-5">
+            {error && <p role="alert" className="text-sm text-red-300">{error}</p>}
           <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <label className="text-xs font-mono font-bold text-slate-300 uppercase tracking-wider">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <label htmlFor="next-claim" className="text-xs font-mono font-bold text-slate-300 uppercase tracking-wider">
                 Noticia, Afirmación o Promesa Comercial:
               </label>
               <button
@@ -166,7 +121,7 @@ export const InRoomLobby: React.FC<InRoomLobbyProps> = ({
               </button>
             </div>
 
-            <textarea
+            <textarea id="next-claim"
               value={claimText}
               onChange={(e) => setClaimText(e.target.value)}
               placeholder="Pega aquí la noticia viral, tweet, pitch de startup o promesa comercial..."
@@ -185,10 +140,10 @@ export const InRoomLobby: React.FC<InRoomLobbyProps> = ({
               </div>
               <div className="space-y-2">
                 {suggestions.map((sug, idx) => (
-                  <div
+                  <button type="button"
                     key={idx}
-                    onClick={() => setClaimText(sug.text)}
-                    className="p-3 bg-slate-950/80 hover:bg-slate-900 border border-slate-800 hover:border-purple-500/60 rounded-lg cursor-pointer transition text-xs space-y-1"
+                    onClick={() => { setClaimText(sug.text); setSuggestions([]); }}
+                    className="p-3 bg-slate-950/80 hover:bg-slate-900 border border-slate-800 hover:border-purple-500/60 rounded-lg cursor-pointer transition text-xs space-y-1 text-left w-full"
                   >
                     <div className="flex items-center justify-between text-[11px] font-mono">
                       <span className="text-purple-300 font-bold">{sug.angle}</span>
@@ -197,7 +152,7 @@ export const InRoomLobby: React.FC<InRoomLobbyProps> = ({
                       </span>
                     </div>
                     <p className="text-slate-200 font-medium">"{sug.text}"</p>
-                  </div>
+                  </button>
                 ))}
               </div>
             </div>
@@ -223,9 +178,9 @@ export const InRoomLobby: React.FC<InRoomLobbyProps> = ({
 
           <button
             type="submit"
-            className="w-full bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-600 hover:from-purple-500 hover:to-indigo-500 text-white font-extrabold py-3 sm:py-3.5 px-4 sm:px-6 rounded-xl flex items-center justify-center space-x-2 shadow-xl shadow-purple-600/30 transition transform hover:-translate-y-0.5 active:scale-95 text-xs sm:text-sm"
+            disabled={isSubmitting || !claimText.trim()} className="w-full bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-600 hover:from-purple-500 hover:to-indigo-500 text-white font-extrabold py-3 sm:py-3.5 px-4 sm:px-6 rounded-xl flex items-center justify-center space-x-2 shadow-xl shadow-purple-600/30 transition transform hover:-translate-y-0.5 active:scale-95 text-xs sm:text-sm"
           >
-            <span>Lanzar Votación del Nuevo Caso a la Sala</span>
+            <span>{isSubmitting ? "Abriendo caso…" : "Abrir votación"}</span>
             <ArrowRight className="w-4 h-4" />
           </button>
         </form>
@@ -241,7 +196,7 @@ export const InRoomLobby: React.FC<InRoomLobbyProps> = ({
 
           <div className="space-y-1 max-w-md">
             <h4 className="text-base font-bold text-white">
-              El Presidente del Tribunal está redactando el siguiente caso
+              Esperando el siguiente caso
             </h4>
             <p className="text-xs text-slate-400 leading-relaxed">
               En cuanto el Host confirme la afirmación, tu pantalla cambiará automáticamente a la votación en vivo sin desconectarte de la sala.

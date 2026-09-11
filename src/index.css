@@ -31,3 +31,27 @@
 .glow-red {
   box-shadow: 0 0 30px -5px rgba(239, 68, 68, 0.25);
 }
+
+/* Shared interaction and small-screen defaults. */
+@layer base {
+  button:disabled { cursor: not-allowed; opacity: .55; }
+  :is(button, a, input, textarea, summary):focus-visible {
+    outline: 2px solid #c084fc;
+    outline-offset: 3px;
+  }
+  input, textarea { min-width: 0; }
+  @media (max-width: 640px) {
+    input, textarea { font-size: 16px !important; }
+    button { min-height: 44px; }
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+button[aria-pressed="true"]:disabled { opacity: 1; cursor: default; }

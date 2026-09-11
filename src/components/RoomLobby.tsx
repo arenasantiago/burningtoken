@@ -4,8 +4,8 @@ import { api } from "../../convex/_generated/api";
 import { Sparkles, Users, ArrowRight, Flame, ShieldAlert, Cpu, Wand2, Loader2, CheckCircle2, ShieldCheck, Scale } from "lucide-react";
 
 interface RoomLobbyProps {
-  onCreateRoom: (title: string, initialClaim: string) => void;
-  onJoinRoom: (code: string) => void;
+  onCreateRoom: (title: string, initialClaim: string) => void | Promise<void>;
+  onJoinRoom: (code: string) => void | Promise<void>;
 }
 
 const PRESET_CLAIMS = [
@@ -37,6 +37,9 @@ export const RoomLobby: React.FC<RoomLobbyProps> = ({
 }) => {
   const [roomTitle, setRoomTitle] = useState("");
   const [claimText, setClaimText] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const submitting = React.useRef(false);
   const [joinCode, setJoinCode] = useState("");
   const [suggestions, setSuggestions] = useState<Array<{ text: string; angle: string; verifiabilityScore: number; reasoning: string }>>([]);
   const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false);
@@ -50,16 +53,21 @@ export const RoomLobby: React.FC<RoomLobbyProps> = ({
       const results = await suggestClaimsAction({ draftText: claimText });
       setSuggestions(results);
     } catch (err) {
-      console.warn("Error getting claim suggestions:", err);
+      setError("El asistente no está disponible. Puedes continuar con tu texto original.");
     } finally {
       setIsLoadingSuggestions(false);
     }
   };
 
-  const handleCreate = (e: React.FormEvent) => {
+  const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!claimText.trim()) return;
-    onCreateRoom(roomTitle, claimText);
+    if (!claimText.trim() || submitting.current) return;
+    submitting.current = true;
+    setIsSubmitting(true);
+    setError(null);
+    try { await onCreateRoom(roomTitle.trim() || "Tribunal de la Verdad", claimText.trim()); }
+    catch (err) { setError(err instanceof Error ? err.message : "No pudimos abrir el caso. Intenta de nuevo."); }
+    finally { submitting.current = false; setIsSubmitting(false); }
   };
 
   const handleJoin = (e: React.FormEvent) => {
@@ -86,17 +94,17 @@ export const RoomLobby: React.FC<RoomLobbyProps> = ({
           <span className="bg-gradient-to-r from-red-500 via-orange-500 to-amber-400 bg-clip-text text-transparent underline decoration-red-500/30">
             Puro Humo
           </span>
-          ? Somete Cualquier Afirmación al Juicio de la Verdad
+          ?
         </h2>
 
         <p className="text-slate-300 max-w-2xl mx-auto text-xs sm:text-sm md:text-base leading-relaxed font-normal">
-          Crea una sala colaborativa, invita a tus colegas, voten en vivo si una promesa es real o puro marketing, y despliega un escuadrón autónomo de investigación profunda.
+          Comparte una afirmación, invita al jurado y contrasta sus votos con una investigación de fuentes.
         </p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 sm:gap-6 items-start">
         {/* Formulario Crear Sala y Claim */}
-        <div className="lg:col-span-2 bg-slate-900/80 border border-purple-500/20 rounded-2xl p-4 sm:p-6 lg:p-7 shadow-2xl backdrop-blur-md space-y-5 glow-purple">
+        <div className="order-2 lg:order-1 lg:col-span-2 min-w-0 bg-slate-900/80 border border-purple-500/20 rounded-2xl p-4 sm:p-6 lg:p-7 shadow-2xl backdrop-blur-md space-y-5 glow-purple">
           <div className="flex items-center justify-between border-b border-slate-800 pb-3.5">
             <div className="flex items-center space-x-2.5">
               <div className="p-2 bg-red-500/10 border border-red-500/30 rounded-lg text-red-400">
@@ -115,25 +123,25 @@ export const RoomLobby: React.FC<RoomLobbyProps> = ({
           </div>
 
           <form onSubmit={handleCreate} className="space-y-4">
+            {error && <p role="alert" className="text-sm text-red-300">{error}</p>}
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-                Título o Tema de la Sesión
+              <label htmlFor="room-title" className="block text-xs font-semibold text-slate-300 mb-1.5">
+                Nombre de la sala (opcional)
               </label>
-              <input
+              <input id="room-title"
                 type="text"
                 value={roomTitle}
                 onChange={(e) => setRoomTitle(e.target.value)}
                 placeholder="Ej. ¿Fake News o Revolución? Juicio de la Sala"
                 className="w-full bg-slate-950 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition"
-                required
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+              <label htmlFor="initial-claim" className="block text-xs font-semibold text-slate-300 mb-1.5">
                 Afirmación / Noticia / Promesa a Someter a Juicio
               </label>
-              <textarea
+              <textarea id="initial-claim"
                 value={claimText}
                 onChange={(e) => setClaimText(e.target.value)}
                 rows={3}
@@ -181,7 +189,7 @@ export const RoomLobby: React.FC<RoomLobbyProps> = ({
                         key={idx}
                         className="bg-slate-900/90 border border-slate-800 hover:border-purple-500/50 rounded-xl p-3.5 text-xs space-y-2 transition shadow-sm"
                       >
-                        <div className="flex items-center justify-between">
+                        <div className="flex flex-wrap items-center justify-between gap-2">
                           <span className="bg-purple-900/50 border border-purple-700/50 text-purple-300 text-[10px] font-mono px-2 py-0.5 rounded font-semibold">
                             {sug.angle}
                           </span>
@@ -219,12 +227,12 @@ export const RoomLobby: React.FC<RoomLobbyProps> = ({
                     key={idx}
                     type="button"
                     onClick={() => setClaimText(preset.title)}
-                    className="w-full text-left text-xs bg-slate-950/70 hover:bg-slate-900 border border-slate-800 hover:border-purple-500/50 p-2.5 rounded-xl transition text-slate-300 flex items-start space-x-2.5 group"
+                    className="w-full text-left text-xs bg-slate-950/70 hover:bg-slate-900 border border-slate-800 hover:border-purple-500/50 p-2.5 rounded-xl transition text-slate-300 flex flex-col sm:flex-row items-start gap-2 group"
                   >
                     <span className="bg-purple-950 border border-purple-800/60 text-purple-300 text-[10px] px-2 py-0.5 rounded font-mono shrink-0 group-hover:border-purple-400 transition">
                       {preset.category}
                     </span>
-                    <span className="truncate group-hover:text-white transition">{preset.title}</span>
+                    <span className="line-clamp-2 group-hover:text-white transition">{preset.title}</span>
                   </button>
                 ))}
               </div>
@@ -232,16 +240,16 @@ export const RoomLobby: React.FC<RoomLobbyProps> = ({
 
             <button
               type="submit"
-              className="w-full bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-700 hover:from-purple-500 hover:to-indigo-500 text-white font-black py-3 px-4 rounded-xl flex items-center justify-center space-x-2 transition shadow-xl shadow-purple-600/30 transform active:scale-98"
+              disabled={isSubmitting || !claimText.trim()} className="w-full bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-700 hover:from-purple-500 hover:to-indigo-500 text-white font-black py-3 px-4 rounded-xl flex items-center justify-center space-x-2 transition shadow-xl shadow-purple-600/30 transform active:scale-98"
             >
-              <span>Abrir Sala e Iniciar Juicio</span>
+              <span>{isSubmitting ? "Creando sala…" : "Crear sala e invitar"}</span>
               <ArrowRight className="w-4 h-4" />
             </button>
           </form>
         </div>
 
         {/* Unirse a Sala Existente */}
-        <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 sm:p-6 shadow-xl flex flex-col justify-between space-y-5 backdrop-blur-md">
+        <div className="order-1 lg:order-2 min-w-0 bg-slate-900/80 border border-slate-800 rounded-2xl p-4 sm:p-6 shadow-xl flex flex-col justify-between space-y-5 backdrop-blur-md">
           <div className="space-y-4">
             <div className="flex items-center space-x-2.5 border-b border-slate-800 pb-3.5">
               <div className="p-2 bg-purple-500/10 border border-purple-500/30 rounded-lg text-purple-400">
@@ -256,15 +264,15 @@ export const RoomLobby: React.FC<RoomLobbyProps> = ({
             </div>
 
             <p className="text-xs text-slate-300 leading-relaxed">
-              Abre una segunda ventana o comparte el código con tu equipo para experimentar la <strong className="text-purple-300">votación reactiva multijugador</strong> en tiempo real.
+              Escribe el código que compartió el anfitrión. Podrás votar y seguir la investigación en la misma sala.
             </p>
 
             <form onSubmit={handleJoin} className="space-y-3.5">
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+                <label htmlFor="join-code" className="block text-xs font-semibold text-slate-300 mb-1.5">
                   Código de la Sala
                 </label>
-                <input
+                <input id="join-code"
                   type="text"
                   value={joinCode}
                   onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
@@ -291,7 +299,7 @@ export const RoomLobby: React.FC<RoomLobbyProps> = ({
             <p className="text-[11px] text-slate-400 leading-relaxed">
               Cada afirmación se somete a un juicio colectivo en tiempo real y a un pipeline de investigación profunda con contraste cruzado de fuentes y análisis cuantitativo de exageración (Hype Score).
             </p>
-            <div className="flex items-center space-x-2 pt-1 text-[10px] font-mono text-slate-500">
+            <div className="flex flex-wrap items-center gap-2 pt-1 text-[10px] font-mono text-slate-500">
               <span className="inline-flex items-center text-emerald-400">● Consenso en vivo</span>
               <span>·</span>
               <span className="inline-flex items-center text-purple-400">● Deep Research bifásico</span>

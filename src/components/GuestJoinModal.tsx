@@ -4,6 +4,7 @@ import { Scale, UserCheck, Sparkles, Shield, ArrowRight } from "lucide-react";
 interface GuestJoinModalProps {
   isOpen: boolean;
   roomCode: string;
+  onCancel: () => void;
   onConfirmNickname: (name: string) => void;
   initialNickname?: string;
 }
@@ -20,12 +21,33 @@ const SUGGESTED_NICKNAMES = [
 export const GuestJoinModal: React.FC<GuestJoinModalProps> = ({
   isOpen,
   roomCode,
+  onCancel,
   onConfirmNickname,
   initialNickname = "",
 }) => {
   const [nickname, setNickname] = useState(initialNickname);
 
+  const dialogRef = React.useRef<HTMLDivElement>(null);
+  React.useEffect(() => {
+    if (!isOpen) return;
+    setNickname(initialNickname);
+    const previous = document.activeElement as HTMLElement | null;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    dialogRef.current?.querySelector<HTMLInputElement>("input")?.focus();
+    return () => { document.body.style.overflow = previousOverflow; previous?.focus(); };
+  }, [isOpen, initialNickname]);
   if (!isOpen) return null;
+
+  const trapFocus = (event: React.KeyboardEvent) => {
+    if (event.key === "Escape") { onCancel(); return; }
+    if (event.key !== "Tab") return;
+    const controls = dialogRef.current?.querySelectorAll<HTMLElement>('button:not(:disabled), input');
+    if (!controls?.length) return;
+    const first = controls[0], last = controls[controls.length - 1];
+    if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+    else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -36,7 +58,7 @@ export const GuestJoinModal: React.FC<GuestJoinModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200 overflow-y-auto">
-      <div className="relative w-full max-w-md bg-tribunal-card border border-purple-500/40 rounded-2xl p-5 sm:p-7 shadow-2xl shadow-purple-950/80 space-y-4 sm:space-y-5 max-h-[90vh] overflow-y-auto my-auto">
+      <div ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby="guest-title" onKeyDown={trapFocus} className="relative w-full max-w-md bg-tribunal-card border border-purple-500/40 rounded-2xl p-5 sm:p-7 shadow-2xl shadow-purple-950/80 space-y-4 sm:space-y-5 max-h-[90vh] overflow-y-auto my-auto">
         {/* Glow */}
         <div className="absolute -top-16 -left-16 w-40 h-40 bg-purple-600/20 blur-3xl rounded-full pointer-events-none" />
 
@@ -46,9 +68,9 @@ export const GuestJoinModal: React.FC<GuestJoinModalProps> = ({
             <Scale className="w-6 h-6" />
           </div>
           <div>
-            <div className="flex items-center gap-2">
-              <h3 className="text-lg font-bold text-white tracking-tight">
-                Acreditación de Jurado
+            <div className="flex flex-wrap items-center gap-2">
+              <h3 id="guest-title" className="text-lg font-bold text-white tracking-tight">
+                Tu nombre en la sala
               </h3>
               <span className="text-[10px] font-mono px-2 py-0.5 bg-purple-950/80 text-purple-300 border border-purple-800/60 rounded">
                 {roomCode}
@@ -63,11 +85,12 @@ export const GuestJoinModal: React.FC<GuestJoinModalProps> = ({
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <label className="block text-xs font-mono text-purple-300 uppercase tracking-wider">
-              Tu Apodo o Nickname de Jurado:
+            <label htmlFor="guest-nickname" className="block text-xs font-mono text-purple-300 uppercase tracking-wider">
+              Apodo visible para el jurado
             </label>
             <div className="relative">
               <input
+                id="guest-nickname"
                 type="text"
                 value={nickname}
                 onChange={(e) => setNickname(e.target.value)}
@@ -119,9 +142,10 @@ export const GuestJoinModal: React.FC<GuestJoinModalProps> = ({
             disabled={!nickname.trim()}
             className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold py-3 px-4 rounded-xl shadow-lg shadow-purple-900/40 flex items-center justify-center gap-2 transition active:scale-[0.99]"
           >
-            <span>Entrar a la Sala como Jurado</span>
+            <span>{initialNickname ? "Guardar apodo" : "Entrar a la Sala como Jurado"}</span>
             <ArrowRight className="w-4 h-4" />
           </button>
+          <button type="button" onClick={onCancel} className="w-full min-h-11 text-sm text-slate-400 hover:text-white">{initialNickname ? "Cancelar" : "Volver al inicio"}</button>
         </form>
       </div>
     </div>

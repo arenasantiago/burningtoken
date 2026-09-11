@@ -12,7 +12,7 @@ import { ProPaywallModal } from "./components/ProPaywallModal";
 import { GuestJoinModal } from "./components/GuestJoinModal";
 import { useAudioTribunal } from "./hooks/useAudioTribunal";
 import { useRevenueCat } from "./hooks/useRevenueCat";
-import { Loader2, AlertTriangle, RefreshCw } from "lucide-react";
+import { Loader2, AlertTriangle } from "lucide-react";
 
 function getOrCreateVoterId(): string {
   let id = sessionStorage.getItem("tribunal_voter_id");
@@ -32,6 +32,10 @@ export function App() {
 
   // Estados locales de navegación
   const [activeRoomCode, setActiveRoomCode] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
+  const [isVoting, setIsVoting] = useState(false);
+  const votePending = useRef(false);
+  const auditPending = useRef(false);
   const [isPaywallOpen, setIsPaywallOpen] = useState(false);
   const [isAuditingLocally, setIsAuditingLocally] = useState(false);
   const [nickname, setNickname] = useState<string>(() => {
@@ -56,17 +60,16 @@ export function App() {
     }
   };
 
-  // Detección de ?room=HYPE-XXX en la URL para multijugador entre navegadores
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const roomParam = params.get("room");
-    if (roomParam) {
-      let clean = roomParam.toUpperCase().trim();
-      if (!clean.startsWith("HYPE-") && /^\d+$/.test(clean)) {
-        clean = `HYPE-${clean}`;
-      }
-      setActiveRoomCode(clean);
-    }
+    const syncRoom = () => {
+      const value = new URLSearchParams(window.location.search).get("room")?.trim().toUpperCase();
+      setActiveRoomCode(value ? (/^\d+$/.test(value) ? 'HYPE-' + value : value) : null);
+      setIsGuestModalOpen(false);
+      setActionError(null);
+    };
+    syncRoom();
+    window.addEventListener("popstate", syncRoom);
+    return () => window.removeEventListener("popstate", syncRoom);
   }, []);
 
   // --- CONSULTAS REACTIVAS DE CONVEX (Multiplayer en tiempo real) ---
@@ -124,11 +127,11 @@ export function App() {
   useEffect(() => {
     if (activeRoomCode && room && !isHost) {
       const confirmed = sessionStorage.getItem(`guest_nick_confirmed_${activeRoomCode}`);
-      if (!confirmed) {
+      if (!confirmed && !nickname) {
         setIsGuestModalOpen(true);
       }
     }
-  }, [activeRoomCode, room, isHost]);
+  }, [activeRoomCode, room, isHost, nickname]);
 
   const handleConfirmGuestNickname = (name: string) => {
     handleUpdateNickname(name);
@@ -172,7 +175,7 @@ export function App() {
       setActiveRoomCode(res.code);
       window.history.pushState({}, "", `?room=${res.code}`);
     } catch (err) {
-      console.error("Error creating room with claim:", err);
+      throw new Error("No pudimos crear la sala. Intenta de nuevo; tu texto se conserva.");
     }
   };
 
@@ -189,7 +192,10 @@ export function App() {
 
   // 3. Emitir voto multijugador reactivo
   const handleCastVote = async (choice: "SMOKE" | "LEGIT") => {
-    if (!room || !room.activeClaimId) return;
+    if (!room || !room.activeClaimId || room.status !== "voting" || votePending.current || isGuestModalOpen) return;
+    votePending.current = true;
+    setIsVoting(true);
+    setActionError(null);
     if (choice === "SMOKE") {
       audio.playVoteSmoke();
     } else {
@@ -204,7 +210,10 @@ export function App() {
         choice,
       });
     } catch (err) {
-      console.error("Error casting vote:", err);
+      setActionError("No pudimos guardar tu voto. Intenta de nuevo.");
+    } finally {
+      votePending.current = false;
+      setIsVoting(false);
     }
   };
 
@@ -219,7 +228,7 @@ export function App() {
         authorName: effectiveUserName,
       });
     } catch (err) {
-      console.error("Error starting next claim:", err);
+      setActionError("No pudimos abrir el caso. Intenta de nuevo.");
     }
   };
 
@@ -229,7 +238,7 @@ export function App() {
     try {
       await prepareNextClaimMutation({ roomId: room._id });
     } catch (err) {
-      console.error("Error preparing next claim:", err);
+      setActionError("No pudimos preparar el siguiente caso. Intenta de nuevo.");
     }
   };
 
@@ -240,7 +249,9 @@ export function App() {
 
   // 4. Desplegar Auditoría Autónoma (Render Workflows + Linkup + Nebius)
   const handleLaunchInvestigation = async () => {
-    if (!room || !room.activeClaimId || !activeClaim) return;
+    if (!room || !room.activeClaimId || !activeClaim || !isHost || auditPending.current) return;
+    auditPending.current = true;
+    setActionError(null);
     audio.playGavel();
     setIsAuditingLocally(true);
 
@@ -258,21 +269,16 @@ export function App() {
         claimText: activeClaim.content,
         isPro: hasProAccess,
       })
-        .then((result) => {
-          setIsAuditingLocally(false);
-          if (result.verdict === "CERTIFIED_SMOKE") {
-            audio.playVerdictChime(true);
-            audio.playSmokeSiren();
-          } else if (result.verdict === "VERIFIED_LEGIT" || result.verdict === "PLAUSIBLE") {
-            audio.playVerdictChime(false);
-          }
+        .catch(() => {
+          setActionError("La auditoría no pudo completarse. Revisa el estado de la investigación.");
         })
-        .catch((err) => {
-          console.error("Error running audit action:", err);
+        .finally(() => {
+          auditPending.current = false;
           setIsAuditingLocally(false);
         });
     } catch (err) {
-      console.error("Error starting investigation:", err);
+      auditPending.current = false;
+      setActionError("No pudimos iniciar la auditoría. Intenta de nuevo.");
       setIsAuditingLocally(false);
     }
   };
@@ -323,12 +329,19 @@ export function App() {
         hasProAccess={hasProAccess}
         onOpenPaywall={() => setIsPaywallOpen(true)}
         onPlayGavel={audio.playGavel}
-        nickname={effectiveUserName}
-        onEditNickname={!isHost ? () => setIsGuestModalOpen(true) : undefined}
+        nickname={room ? effectiveUserName : undefined}
+        onLeaveRoom={activeRoomCode ? handleLeaveRoom : undefined}
+        onEditNickname={room && !isHost ? () => setIsGuestModalOpen(true) : undefined}
       />
 
       {/* Main Stage */}
       <main className="flex-1 max-w-7xl w-full mx-auto p-3 sm:p-6 space-y-6 sm:space-y-8 z-10">
+        {actionError && <div role="alert" className="rounded-xl border border-red-500/40 bg-red-950/40 p-4 text-sm text-red-200">{actionError}</div>}
+        {room && <nav aria-label="Etapas del caso" className="flex flex-wrap gap-2 text-xs text-slate-400">
+          {[['lobby', 'Preparar caso'], ['voting', 'Votar'], ['auditing', 'Investigar'], ['verdict', 'Resultado']].map(([status, label]) => (
+            <span key={status} aria-current={room.status === status ? "step" : undefined} className={room.status === status ? "rounded-full bg-purple-950 px-3 py-2 font-semibold text-purple-200" : "px-3 py-2"}>{label}</span>
+          ))}
+        </nav>}
         {/* Vista 1: Lobby Inicial */}
         {!activeRoomCode && (
           <RoomLobby
@@ -377,7 +390,6 @@ export function App() {
             roomCode={room.code}
             isHost={isHost}
             nickname={effectiveUserName}
-            onUpdateNickname={handleUpdateNickname}
             onLaunchNextClaim={handleLaunchNextClaim}
           />
         )}
@@ -393,11 +405,13 @@ export function App() {
                   smoke: liveCounts?.smoke || 0,
                   legit: liveCounts?.legit || 0,
                   total: liveCounts?.total || 0,
-                  smokePercentage: liveCounts?.smokePercentage || 50,
-                  legitPercentage: liveCounts?.legitPercentage || 50,
+                  smokePercentage: liveCounts?.smokePercentage ?? 50,
+                  legitPercentage: liveCounts?.legitPercentage ?? 50,
                   recentVoters: liveCounts?.recentVoters || [],
                 }}
                 myVoteChoice={myVote?.choice as "SMOKE" | "LEGIT" | undefined}
+                isVoting={isVoting || myVote === undefined || isGuestModalOpen}
+                isStartingAudit={isAuditingLocally}
                 onCastVote={handleCastVote}
                 onLaunchInvestigation={handleLaunchInvestigation}
                 isHost={isHost}
@@ -414,7 +428,7 @@ export function App() {
         )}
 
         {/* Vista 3: Orquestación Asíncrona (Render Workflows + Linkup Deep Research) */}
-        {activeRoomCode && room && (room.status === "auditing" || isAuditingLocally) && (
+        {activeRoomCode && room && (room.status === "auditing") && (
           <div className="space-y-6">
             <WorkflowProgress
               currentStep={investigation?.currentStep || "extracting_claims"}
@@ -458,7 +472,8 @@ export function App() {
 
       {/* Modal Acreditación de Jurado Invitado */}
       <GuestJoinModal
-        isOpen={isGuestModalOpen}
+        isOpen={isGuestModalOpen && Boolean(room)}
+        onCancel={nickname ? () => setIsGuestModalOpen(false) : handleLeaveRoom}
         roomCode={activeRoomCode || ""}
         onConfirmNickname={handleConfirmGuestNickname}
         initialNickname={nickname}
@@ -482,7 +497,7 @@ export function App() {
             <span className="text-purple-400">● Red Reactiva Multijugador</span>
             <span className="text-emerald-400">● Deep Research Multifuente</span>
             <span className="text-indigo-400">● Inferencia LLM Forense</span>
-            <span className="text-amber-400">● Due Diligence Certificado</span>
+            <span className="text-amber-400">● Dossier de Due Diligence</span>
           </div>
         </div>
       </footer>
