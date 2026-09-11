@@ -1,4 +1,4 @@
-import { action } from "./_generated/server";
+import { action, internalAction } from "./_generated/server";
 
 import { v } from "convex/values";
 
@@ -41,14 +41,18 @@ function demoEvidence(title: string, snippet: string): SearchResultItem {
   return { title, snippet, url: "", uncertaintyLevel: "HIGH", supportsClaim: false, source: "demo", assessment: "unassessed" };
 }
 
-export const executeFullAudit = action({
+export const executeFullAudit = internalAction({
   args: {
     investigationId: v.id("investigations"),
     roomId: v.id("rooms"),
     claimText: v.string(),
     isPro: v.optional(v.boolean()),
+    executionToken: v.optional(v.string()),
+    lease: v.optional(v.string()),
+    stage: v.optional(v.union(v.literal("initial"), v.literal("contrast"), v.literal("synthesis"))),
   },
   handler: async (ctx, args) => {
+    const write = (reference: any, payload: any) => ctx.runMutation(reference, { ...payload, executionToken: args.executionToken, lease: args.lease });
 
     if (isOutsideScope(args.claimText)) {
 
@@ -60,7 +64,7 @@ export const executeFullAudit = action({
 
         metrics: { latencyMs: 0, measurementSource: "unavailable" as const } };
 
-      await ctx.runMutation(api.investigations.saveVerdict, { investigationId: args.investigationId, roomId: args.roomId, ...outcome });
+      await write(internal.investigations.saveVerdict, { investigationId: args.investigationId, roomId: args.roomId, ...outcome });
 
       return { success: true, ...outcome };
 
@@ -80,13 +84,13 @@ export const executeFullAudit = action({
 
 
 
-    await ctx.runMutation(api.investigations.updateProgress, {
+    await write(internal.investigations.updateProgress, {
 
       investigationId: args.investigationId, currentStep: "extracting_claims", progressPercentage: 20,
 
     });
 
-    await ctx.runMutation(api.investigations.updateProgress, {
+    await write(internal.investigations.updateProgress, {
 
       investigationId: args.investigationId, currentStep: "linkup_initial_search", progressPercentage: 40,
 
@@ -119,16 +123,18 @@ export const executeFullAudit = action({
       ];
 
       for (const item of initialResults) {
-        initialIds.push(await ctx.runMutation(api.evidence.add, {
+        initialIds.push(await write(internal.evidence.add, {
           investigationId: args.investigationId, step: "initial_search", queryUsed: query1, ...item,
         }));
       }
     }
 
-    await ctx.runMutation(api.investigations.updateProgress, {
+    await write(internal.investigations.updateProgress, {
       investigationId: args.investigationId, currentStep: "linkup_deep_search", progressPercentage: 65,
       checkpoint: "linkup_initial_search_done",
     });
+
+    if (args.stage === "initial") return { success: true, partial: true };
 
     // The second search is derived from findings already persisted in Convex.
     const storedEvidence = await ctx.runQuery(api.evidence.listByInvestigation, { investigationId: args.investigationId });
@@ -136,18 +142,19 @@ export const executeFullAudit = action({
     const initialSources = storedEvidence.filter((item) => initialIdSet.has(item._id) && item.source === "linkup");
 
     const plan = buildContrastPlan(args.claimText, initialSources);
-    await ctx.runMutation(internal.investigations.setResearchPlan, {
+    await write(internal.investigations.setResearchPlan, {
       investigationId: args.investigationId, ...plan, basedOnEvidenceIds: initialSources.map((item) => item._id),
     });
 
     const knownDomains = [...new Set(initialSources.map((item) => new URL(item.url).hostname.replace(/^www\./, "")))];
-    let contrastResults = linkupApiKey && initialSources.length > 0 ? await searchLinkup(linkupApiKey, plan.query, knownDomains, diagnostics, maxEvidencePerStep) : [];
+    const existingContrast = storedEvidence.filter(item => item.step === "follow_up_contrast");
+    let contrastResults: SearchResultItem[] = existingContrast.length > 0 ? existingContrast.map(item => ({ title: item.title, url: item.url, snippet: item.snippet, uncertaintyLevel: item.uncertaintyLevel, supportsClaim: item.supportsClaim, source: item.source ?? "demo", assessment: "unassessed" as const })) : linkupApiKey && initialSources.length > 0 ? await searchLinkup(linkupApiKey, plan.query, knownDomains, diagnostics, maxEvidencePerStep) : [];
 
     const knownUrls = new Set(initialSources.map((item) => item.url.replace("://www.", "://")));
     contrastResults = contrastResults.filter((item) => !knownUrls.has(item.url.replace("://www.", "://")));
 
-    if (contrastResults.length > 0) auditSources.contrastSearch = "live";
-    else contrastResults = [demoEvidence(
+    if (contrastResults.some(item => item.source === "linkup")) auditSources.contrastSearch = "live";
+    if (contrastResults.length === 0) contrastResults = [demoEvidence(
       "Ejemplo: contraste sin evidencia disponible",
       "La búsqueda de seguimiento no obtuvo fuentes utilizables o no pudo iniciarse. Esta tarjeta no respalda ni contradice la afirmación y no se utiliza como prueba.",
     )];
@@ -158,15 +165,17 @@ export const executeFullAudit = action({
     }));
 
     for (const item of contrastResults) {
-      const evidenceId = await ctx.runMutation(api.evidence.add, {
+      const evidenceId = await write(internal.evidence.add, {
         investigationId: args.investigationId, step: "follow_up_contrast", queryUsed: plan.query, ...item,
       });
       if (item.source === "linkup") realEvidence.push({ ...item, evidenceId });
     }
 
-    await ctx.runMutation(api.investigations.updateProgress, {
+    await write(internal.investigations.updateProgress, {
       investigationId: args.investigationId, currentStep: "nebius_synthesizing", progressPercentage: 85,
     });
+
+    if (args.stage === "contrast") return { success: true, partial: true };
 
     let assessment: ModelAssessment | undefined;
     let latencyMs = 0;
@@ -227,7 +236,7 @@ export const executeFullAudit = action({
 
             if (sourceAssessments.length > 0) {
 
-              await ctx.runMutation(internal.evidence.applyAssessments, {
+              await write(internal.evidence.applyAssessments, {
 
                 investigationId: args.investigationId,
 
@@ -274,7 +283,7 @@ export const executeFullAudit = action({
 
     const edgeCaseWarning = "Límite de esta auditoría: se evalúan fragmentos web, no se ejecutan benchmarks ni se certifica la veracidad de una fuente. Las citas respaldan la trazabilidad; su interpretación requiere revisión humana. Una fuente incompleta o una afirmación ambigua pueden exigir evidencia adicional.";
 
-    await ctx.runMutation(api.investigations.saveVerdict, {
+    await write(internal.investigations.saveVerdict, {
 
       investigationId: args.investigationId, roomId: args.roomId, ...outcome, auditSources, edgeCaseWarning, diagnostics,
 

@@ -1,15 +1,10 @@
-services:
-  - type: worker
-    name: truth-tribunal-auditor-worker
-    runtime: node
-    buildCommand: npm install
-    startCommand: node --loader ts-node/esm workflows/auditor_workflow.ts
-    envVars:
-      - key: NODE_ENV
-        value: production
-      - key: LINKUP_API_KEY
-        sync: false
-      - key: NEBIUS_API_KEY
-        sync: false
-      - key: CONVEX_URL
-        sync: false
+# Render Workflows are not managed by Blueprints. This file documents the
+# deployment settings; do not deploy a generic worker as a substitute.
+# Create New > Workflow, repository arenasantiago/burningtoken, branch main.
+# Name: truth-tribunal-auditor
+# Runtime: Node
+# Build command: npm ci && npm run build:workflow
+# Start command: node dist-workflows/auditor_workflow.cjs
+# Task: auditClaim
+# Secrets: WORKFLOW_SHARED_SECRET (same value in Convex); CONVEX_URL (public URL).
+# Convex-only configuration: RENDER_API_KEY, RENDER_TASK_SLUG.

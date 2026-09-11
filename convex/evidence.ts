@@ -1,9 +1,11 @@
+import { assertExecution } from "./lib/execution";
 import { internalMutation, mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 import { evidenceAssessmentValidator, evidenceSourceValidator } from "./auditValidators";
 
-export const add = mutation({
+export const add = internalMutation({
   args: {
+    executionToken: v.optional(v.string()), lease: v.optional(v.string()),
     investigationId: v.id("investigations"),
     step: v.union(v.literal("initial_search"), v.literal("follow_up_contrast")),
     queryUsed: v.string(),
@@ -16,6 +18,7 @@ export const add = mutation({
     assessment: v.optional(evidenceAssessmentValidator),
   },
   handler: async (ctx, args) => {
+    await assertExecution(ctx, args);
     // Idempotencia y deduplicación de evidencias (Reto Render Workflows)
     if (args.url && args.url.trim().length > 0) {
       const existing = await ctx.db
@@ -28,6 +31,11 @@ export const add = mutation({
       }
     }
 
+    if (!args.url.trim()) {
+      const rows = await ctx.db.query("evidence").withIndex("by_investigation", q => q.eq("investigationId", args.investigationId)).collect();
+      const duplicate = rows.find(e => e.step === args.step && e.title === args.title && e.source === args.source);
+      if (duplicate) return duplicate._id;
+    }
     return await ctx.db.insert("evidence", {
       investigationId: args.investigationId,
       step: args.step,
@@ -57,6 +65,7 @@ export const listByInvestigation = query({
 
 export const applyAssessments = internalMutation({
   args: {
+    executionToken: v.optional(v.string()), lease: v.optional(v.string()),
     investigationId: v.id("investigations"),
     assessments: v.array(v.object({
       evidenceId: v.id("evidence"),
@@ -67,6 +76,7 @@ export const applyAssessments = internalMutation({
     })),
   },
   handler: async (ctx, args) => {
+    await assertExecution(ctx, args);
     for (const item of args.assessments) {
       const evidence = await ctx.db.get(item.evidenceId);
       if (!evidence || evidence.investigationId !== args.investigationId || evidence.source !== "linkup") continue;

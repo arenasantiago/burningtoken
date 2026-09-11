@@ -3,6 +3,7 @@ import { CheckCircle2, AlertTriangle, RefreshCw, Server, Search, FileText, Cpu, 
 import { PericialTerm } from "./PericialTerm";
 
 interface WorkflowProgressProps {
+  isHost: boolean; workflowStatus?: string; workflowRunId?: string; workflowError?: string; failureRequested?: boolean; onRetry: () => void;
   currentStep:
     | "idle"
     | "extracting_claims"
@@ -45,6 +46,7 @@ const STEPS = [
 ];
 
 export const WorkflowProgress: React.FC<WorkflowProgressProps> = ({
+  isHost, workflowStatus, workflowRunId, workflowError, failureRequested, onRetry,
   currentStep,
   progressPercentage,
   simulatedFailureTriggered,
@@ -52,7 +54,7 @@ export const WorkflowProgress: React.FC<WorkflowProgressProps> = ({
   onTriggerFailureSimulation,
 }) => {
   const isCompleted = currentStep === "completed";
-  const isRecovered = currentStep === "recovered_from_failure";
+  const isRecovered = simulatedFailureTriggered && workflowStatus === "running";
 
   return (
     <div className="bg-tribunal-card border border-tribunal-border rounded-xl p-4 sm:p-6 shadow-xl space-y-5 sm:space-y-6 max-w-4xl mx-auto">
@@ -65,8 +67,8 @@ export const WorkflowProgress: React.FC<WorkflowProgressProps> = ({
           </h3>
         </div>
         <div className="flex items-center space-x-2">
-          <span className="text-xs bg-indigo-950 border border-indigo-700/50 text-indigo-300 font-mono px-2 py-0.5 rounded">
-            Job de Auditoría #rw-{retryCount > 0 ? `retry-${retryCount}` : "active"}
+          <span className="text-xs bg-indigo-950 border border-indigo-700/50 text-indigo-300 font-mono px-2 py-0.5 rounded break-all">
+            {workflowRunId && workflowRunId !== "pending" ? workflowRunId : "Esperando Render"}
           </span>
           <span className="text-xs font-mono font-bold text-purple-400">
             {progressPercentage}%
@@ -74,6 +76,8 @@ export const WorkflowProgress: React.FC<WorkflowProgressProps> = ({
         </div>
       </div>
 
+      {workflowStatus === "failed" && <div role="alert" className="text-red-300 text-sm space-y-3"><p>{workflowError || "El workflow se detuvo."}</p>{isHost && <button onClick={onRetry} className="rounded-lg border border-red-400 p-3">Reintentar desde el último checkpoint</button>}</div>}
+      {workflowStatus === "retrying" && <p role="status" className="text-amber-300 text-sm">Render reintentará la tarea automáticamente. Los checkpoints guardados se conservan.</p>}
       {/* Progress Bar */}
       <div className="space-y-1">
         <div className="h-2 w-full bg-slate-900 rounded-full overflow-hidden">
@@ -155,17 +159,18 @@ export const WorkflowProgress: React.FC<WorkflowProgressProps> = ({
             <span>Prueba de <PericialTerm term="Tolerancia a Fallos">Resiliencia y Tolerancia a Fallos</PericialTerm></span>
           </div>
           <p className="text-[11px] text-slate-400 max-w-xl">
-            Inyecta una interrupción controlada en el nodo de procesamiento. El orquestador restaura el estado desde el último <PericialTerm term="Checkpoints">checkpoint persistente</PericialTerm> y reanuda la auditoría garantizando <PericialTerm term="Idempotencia">cero duplicación de evidencias</PericialTerm>.
+            Inyecta una interrupción controlada en el nodo de procesamiento. El orquestador restaura el estado desde el último <PericialTerm term="Checkpoints">checkpoint persistente</PericialTerm> y reanuda la auditoría reutilizando las evidencias ya guardadas.
           </p>
           {simulatedFailureTriggered && (
             <div className="inline-flex items-center space-x-1.5 text-[10px] font-mono text-emerald-400 bg-emerald-950/60 border border-emerald-700/50 px-2 py-0.5 rounded">
               <CheckCircle2 className="w-3 h-3 text-emerald-400" />
-              <span>Checkpoint restaurado · Cero duplicados en base de datos</span>
+              <span>Falla ejecutada · Checkpoints conservados</span>
             </div>
           )}
         </div>
 
-        <button
+        {isHost && <button
+          disabled={Boolean(failureRequested || simulatedFailureTriggered || currentStep === "nebius_synthesizing" || workflowStatus === "failed")}
           onClick={onTriggerFailureSimulation}
           className={`shrink-0 w-full sm:w-auto justify-center px-3.5 py-2.5 rounded-lg text-xs font-bold border transition flex items-center space-x-1.5 active:scale-95 ${
             simulatedFailureTriggered
@@ -176,10 +181,10 @@ export const WorkflowProgress: React.FC<WorkflowProgressProps> = ({
           <RefreshCw className={`w-3.5 h-3.5 ${simulatedFailureTriggered ? "text-amber-400" : "text-red-400"}`} />
           <span>
             {simulatedFailureTriggered
-              ? "Recuperado Exitosamente (Reintento #1)"
-              : "Inducir Falla Controlada"}
+              ? "Falla ejecutada"
+              : failureRequested ? "Falla solicitada" : "Inducir Falla Controlada"}
           </span>
-        </button>
+        </button>}
       </div>
     </div>
   );

@@ -23,12 +23,24 @@ function getOrCreateVoterId(): string {
   return id;
 }
 
+function getToken(storage: Storage, key: string) {
+  let token = storage.getItem(key);
+  if (!token || !/^[a-f0-9]{64}$/.test(token)) {
+    token = Array.from(crypto.getRandomValues(new Uint8Array(32)), b => b.toString(16).padStart(2, "0")).join("");
+    storage.setItem(key, token);
+  }
+  return token;
+}
 export function App() {
   const audio = useAudioTribunal();
   const voterId = getOrCreateVoterId();
 
-  // RevenueCat Hook
-  const revenueCat = useRevenueCat(voterId);
+  const [sessionToken] = useState(() => getToken(sessionStorage, "tribunal_host_token"));
+  const [purchaseToken] = useState(() => getToken(localStorage, "tribunal_purchase_token"));
+  const identity = useQuery(api.sessions.identify, { token: sessionToken });
+  const purchaseIdentity = useQuery(api.sessions.identify, { token: purchaseToken });
+  const revenueCat = useRevenueCat(purchaseIdentity?.userId);
+  const [now, setNow] = useState(Date.now());
 
   // Estados locales de navegación
   const [activeRoomCode, setActiveRoomCode] = useState<string | null>(null);
@@ -103,22 +115,26 @@ export function App() {
     investigation?._id ? { investigationId: investigation._id } : "skip"
   );
 
-  const proStatus = useQuery(api.entitlements.getStatus, { userId: voterId });
+  const proStatus = useQuery(api.entitlements.getStatus, { token: purchaseToken });
 
   // --- MUTACIONES Y ACCIONES DE CONVEX ---
   const createRoomWithClaimMutation = useMutation(api.rooms.createWithClaim);
-  const updateRoomStatusMutation = useMutation(api.rooms.updateStatus);
   const startNextClaimMutation = useMutation(api.rooms.startNextClaim);
   const prepareNextClaimMutation = useMutation(api.rooms.prepareNextClaim);
   const castVoteMutation = useMutation(api.votes.cast);
-  const startInvestigationMutation = useMutation(api.investigations.startOrGet);
   const triggerFailureMutation = useMutation(api.investigations.triggerSimulatedFailure);
-  const grantProAccessMutation = useMutation(api.entitlements.grantProAccess);
-  const revokeProAccessMutation = useMutation(api.entitlements.revokeProAccess);
-  const executeFullAuditAction = useAction(api.actions.executeFullAudit);
+  const launchWorkflow = useAction(api.workflows.launch);
+  const syncSubscription = useAction(api.entitlements.sync);
+  useEffect(() => {
+    const refresh = () => { setNow(Date.now()); void syncSubscription({ token: purchaseToken }).catch(() => {}); };
+    refresh();
+    const timer = window.setInterval(refresh, 60000);
+    window.addEventListener("focus", refresh);
+    return () => { clearInterval(timer); window.removeEventListener("focus", refresh); };
+  }, [purchaseToken, syncSubscription]);
 
   // Determinar si el usuario actual es el Host de la sala y su identidad
-  const isHost = room ? room.hostUserId === voterId : false;
+  const isHost = room ? room.hostUserId === identity?.userId : false;
   const effectiveUserName = isHost ? "Host" : (nickname || `Invitado ${voterId.slice(-4)}`);
 
   // Modal de Acreditación para Invitados
@@ -160,7 +176,7 @@ export function App() {
   }, [investigation?.currentStep, investigation?.verdict, investigation?._id, audio]);
 
   // Estado consolidado de suscripción Pro
-  const hasProAccess = Boolean(proStatus?.hasProAccess || revenueCat.isPro);
+  const hasProAccess = Boolean(proStatus?.hasProAccess && (proStatus.expirationDate ?? 0) > now && now - (proStatus.verifiedAt ?? 0) < 300000);
 
   // 1. Crear Sala y claim atómicamente
   const handleCreateRoom = async (title: string, claimText: string) => {
@@ -168,7 +184,7 @@ export function App() {
       audio.playGavel();
       const res = await createRoomWithClaimMutation({
         title,
-        hostUserId: voterId,
+        sessionToken,
         claimText,
       });
 
@@ -224,6 +240,7 @@ export function App() {
     try {
       await startNextClaimMutation({
         roomId: room._id,
+        sessionToken,
         claimText: nextClaimText,
         authorName: effectiveUserName,
       });
@@ -236,7 +253,7 @@ export function App() {
     if (!room) return;
     audio.playGavel();
     try {
-      await prepareNextClaimMutation({ roomId: room._id });
+      await prepareNextClaimMutation({ roomId: room._id, sessionToken });
     } catch (err) {
       setActionError("No pudimos preparar el siguiente caso. Intenta de nuevo.");
     }
@@ -256,29 +273,12 @@ export function App() {
     setIsAuditingLocally(true);
 
     try {
-      const invId = await startInvestigationMutation({
-        claimId: room.activeClaimId,
-        roomId: room._id,
-        workflowRunId: `rw-${Date.now()}`,
-      });
-
-      // Ejecutar la acción completa en segundo plano con Linkup y Nebius
-      executeFullAuditAction({
-        investigationId: invId,
-        roomId: room._id,
-        claimText: activeClaim.content,
-        isPro: hasProAccess,
-      })
-        .catch(() => {
-          setActionError("La auditoría no pudo completarse. Revisa el estado de la investigación.");
-        })
-        .finally(() => {
-          auditPending.current = false;
-          setIsAuditingLocally(false);
-        });
+      await launchWorkflow({ roomId: room._id, sessionToken, purchaseToken });
+      auditPending.current = false;
+      setIsAuditingLocally(false);
     } catch (err) {
       auditPending.current = false;
-      setActionError("No pudimos iniciar la auditoría. Intenta de nuevo.");
+      setActionError("No pudimos iniciar Render. Comprueba su configuración y vuelve a intentar.");
       setIsAuditingLocally(false);
     }
   };
@@ -288,35 +288,20 @@ export function App() {
     if (!investigation) return;
     audio.playSmokeSiren();
     try {
-      await triggerFailureMutation({ investigationId: investigation._id });
+      await triggerFailureMutation({ investigationId: investigation._id, sessionToken });
     } catch (err) {
-      console.error("Error triggering failure simulation:", err);
+      setActionError("No pudimos solicitar la falla. Puede que la última etapa ya haya comenzado.");
     }
   };
 
-  // 6. RevenueCat Test Store Purchase
   const handlePurchaseSuccess = async () => {
-    audio.playUnlockSound();
     await revenueCat.purchasePro();
-    try {
-      await grantProAccessMutation({
-        userId: voterId,
-        entitlementId: "pro_auditor_access",
-      });
-    } catch (err) {
-      console.error("Error granting pro access:", err);
-    }
+    const result = await syncSubscription({ token: purchaseToken });
+    setNow(Date.now());
+    if (!result.hasProAccess) throw new Error("RevenueCat aún no confirma el acceso. Pulsa Actualizar suscripción en unos segundos.");
+    audio.playUnlockSound();
   };
-
-  const handleRevokeAccess = async () => {
-    audio.playVoteClick();
-    revenueCat.resetPro();
-    try {
-      await revokeProAccessMutation({ userId: voterId });
-    } catch (err) {
-      console.error("Error revoking pro access:", err);
-    }
-  };
+  const handleRefreshAccess = async () => { await syncSubscription({ token: purchaseToken }); setNow(Date.now()); };
 
   return (
     <div className="min-h-screen bg-tribunal-dark bg-cyber-grid flex flex-col selection:bg-purple-600 selection:text-white relative overflow-x-hidden">
@@ -436,6 +421,12 @@ export function App() {
               simulatedFailureTriggered={investigation?.simulatedFailureTriggered || false}
               retryCount={investigation?.retryCount || 0}
               onTriggerFailureSimulation={handleTriggerFailureSimulation}
+              isHost={isHost}
+              workflowStatus={investigation?.workflowStatus}
+              workflowRunId={investigation?.workflowRunId}
+              workflowError={investigation?.workflowError}
+              failureRequested={investigation?.failureRequested}
+              onRetry={handleLaunchInvestigation}
             />
             {liveEvidence && liveEvidence.length > 0 && (
               <EvidenceBoard evidenceList={liveEvidence} researchPlan={investigation?.researchPlan} />
@@ -485,7 +476,11 @@ export function App() {
         onClose={() => setIsPaywallOpen(false)}
         hasProAccess={hasProAccess}
         onPurchaseSuccess={handlePurchaseSuccess}
-        onRevokeAccess={handleRevokeAccess}
+        onRefreshAccess={handleRefreshAccess}
+        purchaseAvailable={revenueCat.isConfigured}
+        setupError={revenueCat.error}
+        purchaseToken={purchaseToken}
+        investigationId={investigation?.currentStep === "completed" ? investigation._id : undefined}
         claimText={activeClaim?.content}
       />
 

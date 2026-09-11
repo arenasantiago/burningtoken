@@ -1,7 +1,7 @@
-import { mutation, query } from "./_generated/server";
+import { internalMutation, query } from "./_generated/server";
 import { v } from "convex/values";
 
-export const create = mutation({
+export const create = internalMutation({
   args: {
     roomId: v.id("rooms"),
     authorName: v.string(),

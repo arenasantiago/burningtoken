@@ -1,88 +1,20 @@
-/**
- * Render Workflows: Resilient Background Execution Worker
- * 
- * Implements:
- * 1. Step-based background orchestration.
- * 2. Idempotency (deduplication by workflowRunId).
- * 3. Checkpointing and controlled failure recovery.
- */
-
-interface WorkflowContext {
-  workflowRunId: string;
-  claimId: string;
-  step: string;
-  retryCount: number;
-  completedSteps: Set<string>;
+import { task, type TaskContext } from "@renderinc/sdk/workflows";
+import { ConvexHttpClient } from "convex/browser";
+import { makeFunctionReference } from "convex/server";
+import { randomUUID } from "node:crypto";
+export async function runAuditStages(input: { investigationId: string; executionToken: string }, invoke: (args: any) => Promise<any>) {
+  for (const stage of ["initial", "contrast", "synthesis"] as const) {
+    const result = await invoke({ ...input, stage, lease: randomUUID() });
+    if (result.fail) throw new Error("Controlled failure after persisted checkpoint: initial");
+    console.log(JSON.stringify({ investigationId: input.investigationId, stage, checkpointReused: result.skip === true }));
+  }
+  return { investigationId: input.investigationId, completed: true };
 }
-
-export class AuditorWorkflow {
-  private ctx: WorkflowContext;
-
-  constructor(workflowRunId: string, claimId: string) {
-    this.ctx = {
-      workflowRunId,
-      claimId,
-      step: "initialized",
-      retryCount: 0,
-      completedSteps: new Set(),
-    };
-  }
-
-  // Ejecución de paso idempotente con reintentos
-  async executeStep(stepName: string, action: () => Promise<void>) {
-    if (this.ctx.completedSteps.has(stepName)) {
-      console.log(`[Render Workflows] Paso ya completado (Idempotente): ${stepName}`);
-      return;
-    }
-
-    console.log(`[Render Workflows] Ejecutando: ${stepName}...`);
-    try {
-      await action();
-      this.ctx.completedSteps.add(stepName);
-      this.ctx.step = stepName;
-      console.log(`[Render Workflows] Paso completado: ${stepName}`);
-    } catch (err) {
-      console.error(`[Render Workflows] Fallo en ${stepName}. Iniciando reintento controlado...`);
-      this.ctx.retryCount++;
-      // Auto-recuperación idempotente
-      await action();
-      this.ctx.completedSteps.add(stepName);
-      console.log(`[Render Workflows] Auto-recuperado con éxito (Reintento #${this.ctx.retryCount}): ${stepName}`);
-    }
-  }
-
-  async run(claimText: string, induceFailure: boolean = false) {
-    console.log(`[Render Workflows] Iniciando Run #${this.ctx.workflowRunId} para claim: "${claimText}"`);
-
-    // Paso 1: Extracción
-    await this.executeStep("extracting_claims", async () => {
-      // Simula tokenización
-    });
-
-    // Paso 2: Linkup Initial Search
-    await this.executeStep("linkup_initial_search", async () => {
-      // Búsqueda inicial con Linkup SDK
-    });
-
-    // Paso 3: Simulación de fallo en el step intermedio
-    if (induceFailure && !this.ctx.completedSteps.has("simulated_crash_test")) {
-      await this.executeStep("simulated_crash_test", async () => {
-        if (this.ctx.retryCount === 0) {
-          throw new Error("Simulación inducida de caída de nodo para demostración a los jueces de Render");
-        }
-      });
-    }
-
-    // Paso 4: Linkup Deep Search
-    await this.executeStep("linkup_deep_search", async () => {
-      // Búsqueda de contraste
-    });
-
-    // Paso 5: Nebius Token Factory
-    await this.executeStep("nebius_synthesizing", async () => {
-      // Inferencia y métricas
-    });
-
-    console.log(`[Render Workflows] Workflow #${this.ctx.workflowRunId} finalizado con éxito.`);
-  }
-}
+task({ name: "auditClaim", retry: { maxRetries: 3, waitDurationMs: 65000, backoffScaling: 1 }, timeoutSeconds: 600 },
+  async (_ctx: TaskContext, input: { investigationId: string; executionToken: string }) => {
+    const url = process.env.CONVEX_URL;
+    const secret = process.env.WORKFLOW_SHARED_SECRET;
+    if (!url || !secret) throw new Error("Missing worker configuration");
+    const convex = new ConvexHttpClient(url);
+    return runAuditStages(input, args => convex.action(makeFunctionReference("workflows:runStage"), { ...args, secret }));
+  });

@@ -1,86 +1,26 @@
 import { useEffect, useState } from "react";
-import { Purchases, CustomerInfo, Offerings } from "@revenuecat/purchases-js";
-
-interface UseRevenueCatReturn {
-  isConfigured: boolean;
-  isPro: boolean;
-  offerings: Offerings | null;
-  customerInfo: CustomerInfo | null;
-  purchasePro: () => Promise<boolean>;
-  resetPro: () => void;
-}
-
-export function useRevenueCat(userId: string): UseRevenueCatReturn {
-  const [isConfigured, setIsConfigured] = useState(false);
-  const [isPro, setIsPro] = useState(false);
-  const [offerings, setOfferings] = useState<Offerings | null>(null);
-  const [customerInfo, setCustomerInfo] = useState<CustomerInfo | null>(null);
-
-  const apiKey = import.meta.env.VITE_REVENUECAT_PUBLIC_KEY;
-
+import { Purchases, type Package } from "@revenuecat/purchases-js";
+export function useRevenueCat(userId?: string) {
+  const [selected, setSelected] = useState<Package | null>(null);
+  const [error, setError] = useState<string | null>(null);
   useEffect(() => {
-    if (!apiKey || apiKey.includes("your_revenuecat") || isConfigured) return;
-
-    try {
-      Purchases.configure(apiKey, userId);
-      setIsConfigured(true);
-
-      const purchases = Purchases.getSharedInstance();
-      purchases
-        .getCustomerInfo()
-        .then((info) => {
-          setCustomerInfo(info);
-          if (info.entitlements.active["pro_auditor_access"]) {
-            setIsPro(true);
-          }
-        })
-        .catch((err) => {
-          console.warn("[RevenueCat] getCustomerInfo warning:", err);
-        });
-
-      purchases
-        .getOfferings()
-        .then((offs) => {
-          setOfferings(offs);
-        })
-        .catch((err) => {
-          console.warn("[RevenueCat] getOfferings warning:", err);
-        });
-    } catch (err) {
-      console.warn("[RevenueCat] configure error:", err);
-    }
-  }, [apiKey, userId, isConfigured]);
-
-  const purchasePro = async (): Promise<boolean> => {
-    // Si RevenueCat SDK está configurado y hay un package en el offering
-    if (isConfigured && offerings?.current?.availablePackages?.length) {
-      try {
-        const pkg = offerings.current.availablePackages[0];
-        const res = await Purchases.getSharedInstance().purchasePackage(pkg);
-        setCustomerInfo(res.customerInfo);
-        const hasEntitlement = Boolean(res.customerInfo.entitlements.active["pro_auditor_access"]);
-        setIsPro(hasEntitlement || true);
-        return true;
-      } catch (err) {
-        console.warn("[RevenueCat] purchase error, falling back to sandbox entitlement:", err);
-      }
-    }
-
-    // Modo Test Store directo garantizado
-    setIsPro(true);
-    return true;
-  };
-
-  const resetPro = () => {
-    setIsPro(false);
-  };
-
-  return {
-    isConfigured,
-    isPro,
-    offerings,
-    customerInfo,
-    purchasePro,
-    resetPro,
-  };
+    if (!userId) return;
+    let cancelled = false;
+    (async () => {
+      const apiKey = import.meta.env.VITE_REVENUECAT_PUBLIC_KEY;
+      if (!apiKey?.startsWith("test_")) throw new Error("Configura RevenueCat Test Store para comprar sin cargos reales.");
+      const purchases = Purchases.isConfigured() ? Purchases.getSharedInstance() : Purchases.configure({ apiKey, appUserId: userId });
+      if (purchases.getAppUserId() !== userId) await purchases.changeUser(userId);
+      const offerings = await purchases.getOfferings();
+      const pkg = offerings.current?.availablePackages.find(p => p.webBillingProduct.identifier === "pro_auditor_monthly");
+      if (!pkg) throw new Error("El producto Pro todavía no está disponible en Test Store.");
+      if (!cancelled) { setSelected(pkg); setError(null); }
+    })().catch(e => { if (!cancelled) setError(e.message); });
+    return () => { cancelled = true; };
+  }, [userId]);
+  return { error, isConfigured: Boolean(selected), purchasePro: async () => {
+    if (!selected || !userId) throw new Error(error || "Espera a que cargue Test Store.");
+    const result = await Purchases.getSharedInstance().purchase({ rcPackage: selected });
+    if (!result.customerInfo.entitlements.active.pro_auditor_access) throw new Error("La compra no activó el acceso Pro. Actualiza el estado de la suscripción.");
+  }};
 }

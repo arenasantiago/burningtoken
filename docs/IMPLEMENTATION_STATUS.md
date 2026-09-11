@@ -126,3 +126,20 @@ Segunda ronda comprobada en la misma sala: nuevo texto visible para el invitado,
 
 Backend: `npx convex dev --once` completado en `brave-lemur-868` (deployment configurado de desarrollo que sirve la URL pública). Frontend: `npx @convex-dev/static-hosting upload` completado, deployment `3373e891-4b4c-4916-a0df-ca5212d6cf80`, JS `index-BsqaqXJ7.js` y CSS `index-CbU-xpxA.css`. Se publica el build validado del incremento UX; 60 pruebas y recorrido de dos sesiones registrados arriba. No se completaron Render real ni compra RevenueCat con esta publicación.
 Verificación posterior: GET de https://brave-lemur-868.convex.site respondió HTTP 200 y su HTML referencia exactamente los assets JS/CSS del build publicado.
+
+## Incremento Render & RevenueCat (Contratos, Verificación en Servidor y Despliegue) — 2026-09-11
+
+Alcance:
+1. **Autorización estricta del Host:** tokens criptográficos de 256 bits (`sessionStorage`), SHA-256 en servidor (`convex/lib/session.ts`), mutaciones protegidas (`prepareNextClaim`, `startNextClaim`, `triggerSimulatedFailure`). Un cliente con el `hostUserId` público no puede falsificar control.
+2. **RevenueCat Test Store con validación en servidor:** eliminación definitiva de bypasses y desbloqueos simulados (`hasEntitlement || true` y `grantProAccess` eliminados). La mutación `sync` consulta la API REST de RevenueCat v1 con `REVENUECAT_SECRET_KEY`, valida sandbox, vigencia, producto `pro_auditor_monthly` y entitlement `pro_auditor_access`. Acceso al dossier confidencial condicionado a suscripción verificada.
+3. **Render Workflows y ejecución resiliente:** orquestador asíncrono `@renderinc/sdk/workflows` (`workflows/auditor_workflow.ts`), script compilado `build:workflow`, mutaciones con lease temporal e idempotencia estricta (`convex/investigations.ts`, `convex/workflows.ts`, `convex/workflowDispatch.ts`). Soporte de inducción de falla controlada que se recupera automáticamente retomando desde el último checkpoint persistente sin duplicar evidencias.
+4. **Verificación automatizada:** 66 pruebas unitarias y de integración (`npm test`: 66/66 aprobadas) cubriendo expiración de Pro, rechazo de compras no-sandbox, permisos de host, retries con checkpoints en Render, bloqueo de callbacks desfasados y no exposición de secretos en queries públicas.
+
+Evidencia y despliegue (Node 24, Windows, Convex Cloud `brave-lemur-868`):
+- `npm test`: 66/66 aprobadas.
+- `npm run build`: bundle TypeScript y Vite generado exitosamente.
+- `npm run build:workflow`: bundle CJS del worker de Render generado (`dist-workflows/auditor_workflow.cjs`).
+- `npx convex dev --once`: backend Convex sincronizado y validado en `brave-lemur-868`.
+- `npx @convex-dev/static-hosting upload`: frontend publicado en `https://brave-lemur-868.convex.site` (deployment ID `404c9d7d-361b-4fc6-9b85-e37be84cbc1c`, assets `index-DlY82TY8.js` y `index-BbDrZO6X.css`).
+- Verificación live: GET HTTP 200 en `https://brave-lemur-868.convex.site` sirviendo los assets recién compilados.
+- Pendiente para ejecución en vivo de Render / RevenueCat: configurar variables de entorno privadas en los dashboards de los servicios (`RENDER_API_KEY`, `RENDER_TASK_SLUG`, `WORKFLOW_SHARED_SECRET`, `REVENUECAT_SECRET_KEY`) y conectar el repositorio GitHub `arenasantiago/burningtoken` en Render.

@@ -58,6 +58,15 @@ export default defineSchema({
     retryCount: v.number(),
     completedCheckpoints: v.optional(v.array(v.string())), // Checkpoints persistentes (Render Workflows)
     
+    executionToken: v.optional(v.string()),
+    workflowStatus: v.optional(v.union(v.literal("queued"), v.literal("running"), v.literal("retrying"), v.literal("failed"), v.literal("completed"))),
+    workflowError: v.optional(v.string()),
+    stageLease: v.optional(v.string()),
+    stageLeaseUntil: v.optional(v.number()),
+    failureRequested: v.optional(v.boolean()),
+    failureConsumed: v.optional(v.boolean()),
+    proAccess: v.optional(v.boolean()),
+    dispatchStartedAt: v.optional(v.number()),
     // Resultados de Nebius Token Factory (Applied AI)
     verdict: v.optional(verdictValidator),
     auditSources: v.optional(auditSourcesValidator),
@@ -96,6 +105,9 @@ export default defineSchema({
     hasProAccess: v.boolean(),    // Desbloquea el "VC Due Diligence Dossier"
     entitlementId: v.string(),    // "pro_auditor_access"
     expirationDate: v.optional(v.number()),
+    verifiedBy: v.optional(v.literal("revenuecat")),
+    environment: v.optional(v.literal("SANDBOX")),
+    productId: v.optional(v.string()),
     updatedAt: v.number(),
   }).index("by_user", ["userId"]),
 });

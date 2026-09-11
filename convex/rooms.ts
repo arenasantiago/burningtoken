@@ -1,4 +1,5 @@
-import { mutation, query } from "./_generated/server";
+import { sessionUserId, requireHost } from "./lib/session";
+import { internalMutation, mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 
 // Generar código legible estilo "HYPE-742"
@@ -11,7 +12,7 @@ function generateRoomCode(): string {
 export const createWithClaim = mutation({
   args: {
     title: v.string(),
-    hostUserId: v.string(),
+    sessionToken: v.string(),
     claimText: v.string(),
   },
   handler: async (ctx, args) => {
@@ -19,7 +20,7 @@ export const createWithClaim = mutation({
     const roomId = await ctx.db.insert("rooms", {
       code,
       title: args.title,
-      hostUserId: args.hostUserId,
+      hostUserId: await sessionUserId(args.sessionToken),
       status: "voting",
       createdAt: Date.now(),
     });
@@ -42,14 +43,14 @@ export const createWithClaim = mutation({
 export const create = mutation({
   args: {
     title: v.string(),
-    hostUserId: v.string(),
+    sessionToken: v.string(),
   },
   handler: async (ctx, args) => {
     const code = generateRoomCode();
     const roomId = await ctx.db.insert("rooms", {
       code,
       title: args.title,
-      hostUserId: args.hostUserId,
+      hostUserId: await sessionUserId(args.sessionToken),
       status: "lobby",
       createdAt: Date.now(),
     });
@@ -78,7 +79,7 @@ export const get = query({
   },
 });
 
-export const updateStatus = mutation({
+export const updateStatus = internalMutation({
   args: {
     roomId: v.id("rooms"),
     status: v.union(
@@ -93,7 +94,7 @@ export const updateStatus = mutation({
   },
 });
 
-export const setActiveClaim = mutation({
+export const setActiveClaim = internalMutation({
   args: {
     roomId: v.id("rooms"),
     claimId: v.id("claims"),
@@ -110,8 +111,11 @@ export const setActiveClaim = mutation({
 export const prepareNextClaim = mutation({
   args: {
     roomId: v.id("rooms"),
+    sessionToken: v.string(),
   },
   handler: async (ctx, args) => {
+    const room = await requireHost(ctx, args.roomId, args.sessionToken);
+    if (room.status === "auditing") throw new Error("Espera a que termine la investigación.");
     await ctx.db.patch(args.roomId, {
       status: "lobby",
     });
@@ -122,10 +126,13 @@ export const prepareNextClaim = mutation({
 export const startNextClaim = mutation({
   args: {
     roomId: v.id("rooms"),
+    sessionToken: v.string(),
     claimText: v.string(),
     authorName: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
+    const room = await requireHost(ctx, args.roomId, args.sessionToken);
+    if (room.status !== "lobby" && room.status !== "verdict") throw new Error("Ya hay un caso activo.");
     const claimId = await ctx.db.insert("claims", {
       roomId: args.roomId,
       authorName: args.authorName || "Host",

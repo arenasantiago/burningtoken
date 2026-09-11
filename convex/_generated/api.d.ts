@@ -16,9 +16,15 @@ import type * as evidence from "../evidence.js";
 import type * as investigations from "../investigations.js";
 import type * as lib_auditPolicy from "../lib/auditPolicy.js";
 import type * as lib_claimSuggestions from "../lib/claimSuggestions.js";
+import type * as lib_execution from "../lib/execution.js";
 import type * as lib_research from "../lib/research.js";
+import type * as lib_session from "../lib/session.js";
+import type * as lib_subscription from "../lib/subscription.js";
 import type * as rooms from "../rooms.js";
+import type * as sessions from "../sessions.js";
 import type * as votes from "../votes.js";
+import type * as workflowDispatch from "../workflowDispatch.js";
+import type * as workflows from "../workflows.js";
 
 import type {
   ApiFromModules,
@@ -35,9 +41,15 @@ declare const fullApi: ApiFromModules<{
   investigations: typeof investigations;
   "lib/auditPolicy": typeof lib_auditPolicy;
   "lib/claimSuggestions": typeof lib_claimSuggestions;
+  "lib/execution": typeof lib_execution;
   "lib/research": typeof lib_research;
+  "lib/session": typeof lib_session;
+  "lib/subscription": typeof lib_subscription;
   rooms: typeof rooms;
+  sessions: typeof sessions;
   votes: typeof votes;
+  workflowDispatch: typeof workflowDispatch;
+  workflows: typeof workflows;
 }>;
 
 /**
