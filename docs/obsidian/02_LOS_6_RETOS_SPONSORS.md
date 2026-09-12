@@ -1,113 +1,129 @@
-# 🏆 02. La Matriz de los 6 Retos Patrocinados (100% Cumplidos)
-#hackathon #sponsors #convex #linkup #nebius #render #revenuecat #nerdconf
-
-Regresar al [[00_INDICE_TRUTH_TRIBUNAL|Índice Maestro]].
-
+---
+tags:
+  - sponsors
+  - hackathon
+  - verificacion
+updated: 2026-09-12
 ---
 
-## 🧭 ¿Por qué el proyecto está 100% Completo y Defendible?
+# 02 · Los Seis Retos Sponsors
 
-Cada uno de los 6 patrocinadores exigió un **requisito técnico no negociable**. A continuación se documenta el criterio de evaluación de cada sponsor, dónde vive en el código y por qué no es un mock superficial, sino una implementación real:
+Volver a [[00_INDICE_TRUTH_TRIBUNAL|Índice]].
 
-```mermaid
-graph LR
-    subgraph Retos["6 Retos Oficiales del Hackathon"]
-        R1["1. Convex\nMultiplayer & Hosting"]
-        R2["2. Linkup\nDeep Research 2 Fases"]
-        R3["3. Nebius\nApplied AI & Token Factory"]
-        R4["4. Render\nWorkflows Resilientes"]
-        R5["5. RevenueCat\nTest Store Web SDK"]
-        R6["6. NERDCONF\nFun Build & Web Audio"]
-    end
+> [!IMPORTANT]
+> Esta nota responde cuatro preguntas por sponsor: qué pide, dónde está, qué se comprobó y qué falta. La referencia auditable es `docs/IMPLEMENTATION_STATUS.md`.
 
-    R1 --> Code1["convex/schema.ts\nconvex/rooms.ts\nconvex.site"]
-    R2 --> Code2["convex/actions.ts\nconvex/lib/research.ts"]
-    R3 --> Code3["convex/actions.ts\nconvex/lib/auditPolicy.ts"]
-    R4 --> Code4["workflows/auditor_workflow.ts\nconvex/investigations.ts\nconvex/evidence.ts"]
-    R5 --> Code5["src/hooks/useRevenueCat.ts\nsrc/components/ProPaywallModal.tsx"]
-    R6 --> Code6["src/hooks/useAudioTribunal.ts\nsrc/components/LiveVoting.tsx"]
-```
+## Matriz Ejecutiva
 
----
+| Sponsor | Requisito central | Situación actual | Prueba que debe verse |
+|---|---|---|---|
+| Convex | Multiplayer reactivo y hosting en `convex.site`. | Implementado y verificado. | Dos navegadores cambian juntos. |
+| Linkup | Investigación iterativa en dos fases. | Implementada; proveedores verificados. | Brecha inicial → nueva consulta → fuente. |
+| Nebius | Inferencia aplicada, métricas y caso límite. | Implementada; ejecución real registrada. | Cita, tokens, latencia y limitación. |
+| Render | Workflow resiliente con fallo y reintento. | Código y pruebas listos; servicio real pendiente. | Run real, error, retry y cero duplicados. |
+| RevenueCat | Test Store y entitlement Pro. | Compra cliente observada; cierre server-side pendiente. | Free → compra sandbox → Pro validado. |
+| NERDCONF | Experiencia original y divertida. | Implementada; interacción multisesión comprobada. | Votos, tacómetro, audio y reacción. |
 
-## 1. Patrocinador: CONVEX ($500 USD)
-- **Reto:** *Multiplayer*
-- **Requisito Técnico No Negociable:** Estado reactivo sincronizado en tiempo real entre múltiples participantes (votos, salas, etapas de auditoría). Despliegue estático oficial en `convex.site`.
-- **Módulos Clave:**
-  * [`convex/schema.ts`](file:///c:/Users/Santiago%20Arenas/Desktop/Burning%20dev/convex/schema.ts): Esquema de 6 tablas con índices optimizados.
-  * [`convex/rooms.ts`](file:///c:/Users/Santiago%20Arenas/Desktop/Burning%20dev/convex/rooms.ts): Creación atómica de sala y claim (`createWithClaim`), evitando estados desincronizados para invitados.
-  * [`convex/votes.ts`](file:///c:/Users/Santiago%20Arenas/Desktop/Burning%20dev/convex/votes.ts): Votación anti-duplicados por ID de sesión y recuento en tiempo real.
-  * [`convex/convex.config.ts`](file:///c:/Users/Santiago%20Arenas/Desktop/Burning%20dev/convex/convex.config.ts): Configuración oficial de `@convex-dev/static-hosting`.
-- **Por qué está completo:**
-  Al abrir dos pestañas (Host e Invitado) en la misma sala (`?room=HYPE-XXX`), cualquier voto o avance en la investigación se propaga instantáneamente por WebSockets sin recargar. Además, la aplicación está desplegada públicamente en [https://brave-lemur-868.convex.site](https://brave-lemur-868.convex.site).
+## 1. Convex · Multiplayer
 
----
+**Qué pide:** estado compartido en tiempo real y frontend alojado oficialmente en Convex Static Hosting.
 
-## 2. Patrocinador: LINKUP ($500 USD)
-- **Reto:** *Deep Research*
-- **Requisito Técnico No Negociable:** Búsqueda iterativa en **dos fases**: Fase 1 (búsqueda inicial y benchmarks) y Fase 2 (contraste de brechas y contradicciones), con citas URL y niveles de incertidumbre (`LOW`, `MEDIUM`, `HIGH`).
-- **Módulos Clave:**
-  * [`convex/actions.ts`](file:///c:/Users/Santiago%20Arenas/Desktop/Burning%20dev/convex/actions.ts): Disparo de las dos peticiones HTTP a `https://api.linkup.so/v1/search` con `depth: "deep"`.
-  * [`convex/lib/research.ts`](file:///c:/Users/Santiago%20Arenas/Desktop/Burning%20dev/convex/lib/research.ts): Función `buildContrastPlan()` que examina qué entidades o afirmaciones faltan en los hallazgos de la Fase 1, excluye dominios ya visitados y formula la query de la Fase 2.
-  * [`src/components/EvidenceBoard.tsx`](file:///c:/Users/Santiago%20Arenas/Desktop/Burning%20dev/src/components/EvidenceBoard.tsx): Tablero pericial que agrupa y etiqueta visualmente cada fuente según su fase, procedencia (`Real` vs `Demo`), y nivel de incertidumbre.
-- **Por qué está completo:**
-  La Fase 2 no es un mock estático: se deriva matemáticamente de las brechas de información de la Fase 1. Además, se filtran URLs repetidas y esquemas inseguros (`javascript:` o credenciales embebidas).
+**Código clave:**
 
----
+- `convex/rooms.ts`: sala y claim atómicos, transición de casos.
+- `convex/votes.ts`: voto por participante y conteos.
+- `convex/sessions.ts` y `convex/lib/session.ts`: identidad ligera y autorización del host.
+- `convex/convex.config.ts`: static hosting.
 
-## 3. Patrocinador: NEBIUS ($500 USD)
-- **Reto:** *Applied AI*
-- **Requisito Técnico No Negociable:** Inferencia pericial con **Nebius Token Factory** (API OpenAI-compatible). Despliegue en UI de métricas cuantitativas en vivo: latencia en ms, tokens de entrada/salida, costo estimado en USD, score de confianza y caso límite documentado (*Edge Case*).
-- **Módulos Clave:**
-  * [`convex/actions.ts`](file:///c:/Users/Santiago%20Arenas/Desktop/Burning%20dev/convex/actions.ts): Conexión con `https://api.studio.nebius.ai/v1/chat/completions` usando el modelo `Qwen/Qwen3-30B-A3B-Instruct-2507`.
-  * [`convex/lib/auditPolicy.ts`](file:///c:/Users/Santiago%20Arenas/Desktop/Burning%20dev/convex/lib/auditPolicy.ts): Parser estricto que exige al modelo extraer citas literales de los snippets web (`quote`) para evitar alucinaciones. Si el LLM inventa citas, el veredicto se degrada inmediatamente a `INSUFFICIENT_EVIDENCE`.
-  * [`src/components/VerdictReport.tsx`](file:///c:/Users/Santiago%20Arenas/Desktop/Burning%20dev/src/components/VerdictReport.tsx): Despliegue pericial de la cuadrícula de métricas con honestidad (muestra `No disponible` si no hay `usage` en lugar de inventar números estáticos).
-- **Por qué está completo:**
-  Mide la latencia pura de la llamada de inferencia (`performance.now()`), lee los tokens reales de `response.usage`, documenta el caso límite del modelo y previene activamente el fraude pericial con validación cruzada de citas.
+**Comprobado:** dos sesiones distintas crearon/se unieron, votaron, cambiaron voto, avanzaron a investigación, recibieron resultado y conservaron la sala para otro caso. La URL pública respondió con los assets desplegados.
 
----
+**Para el video:** mostrar dos vistas legibles y un cambio reactivo. No basta enseñar el código.
 
-## 4. Patrocinador: RENDER ($900 Créditos)
-- **Reto:** *Workflows*
-- **Requisito Técnico No Negociable:** Orquestador de background workers resiliente y desacoplado, con demostración en vivo de falla controlada, auto-recuperación e idempotencia sin duplicación de registros en la base de datos.
-- **Módulos Clave:**
-  * [`workflows/auditor_workflow.ts`](file:///c:/Users/Santiago%20Arenas/Desktop/Burning%20dev/workflows/auditor_workflow.ts): Manifiesto del worker resiliente con checkpoints.
-  * [`convex/investigations.ts`](file:///c:/Users/Santiago%20Arenas/Desktop/Burning%20dev/convex/investigations.ts): Manejo de checkpoints persistentes (`completedCheckpoints`) y mutación `triggerSimulatedFailure`.
-  * [`convex/evidence.ts`](file:///c:/Users/Santiago%20Arenas/Desktop/Burning%20dev/convex/evidence.ts): Deduplicación a nivel de base de datos (`filter(q => q.eq(q.field("url"), args.url))`).
-  * [`src/components/WorkflowProgress.tsx`](file:///c:/Users/Santiago%20Arenas/Desktop/Burning%20dev/src/components/WorkflowProgress.tsx): Botón *"Inducir Falla Controlada"* con confirmación visual de reanudación sin duplicados.
-- **Por qué está completo:**
-  Al pulsar el botón durante la auditoría, se simula la caída del nodo. Al recuperarse, retoma la investigación desde el checkpoint guardado sin volver a consumir consultas iniciales ni crear registros duplicados en la base de datos.
+## 2. Linkup · Deep Research
 
----
+**Qué pide:** búsqueda profunda e iterativa, donde los primeros hallazgos determinan el siguiente paso.
 
-## 5. Patrocinador: REVENUECAT ($500 USD)
-- **Reto:** *Subscriptions*
-- **Requisito Técnico No Negociable:** Integración web con **RevenueCat Test Store Sandbox** (sin cobro real). Configuración del entitlement `pro_auditor_access` y producto `pro_auditor_monthly`. Desbloqueo en vivo del *"Dossier Confidencial de Due Diligence para VCs"*.
-- **Módulos Clave:**
-  * [`src/hooks/useRevenueCat.ts`](file:///c:/Users/Santiago%20Arenas/Desktop/Burning%20dev/src/hooks/useRevenueCat.ts): Inicialización oficial de `@revenuecat/purchases-js` con `Purchases.configure(apiKey, userId)`, lectura de offerings y ejecución de `purchasePackage`.
-  * [`src/components/ProPaywallModal.tsx`](file:///c:/Users/Santiago%20Arenas/Desktop/Burning%20dev/src/components/ProPaywallModal.tsx): Modal con producto sandbox `$0.00`, compra Test Store y exportación de archivo real en Markdown (`VC_Dossier_Due_Diligence_*.md`).
-  * [`convex/entitlements.ts`](file:///c:/Users/Santiago%20Arenas/Desktop/Burning%20dev/convex/entitlements.ts): Persistencia del estado Pro en Convex Cloud.
-- **Por qué está completo:**
-  El acceso Pro está bloqueado por defecto. El usuario hace la compra de prueba en el Test Store, el SDK confirma el entitlement `pro_auditor_access` y la interfaz abre el dossier confidencial vinculado al claim auditado.
+**Código clave:**
 
----
+- `convex/actions.ts`: llamadas privadas a Linkup.
+- `convex/lib/research.ts`: plan de brechas, URLs y citas.
+- `src/components/EvidenceBoard.tsx`: fase, procedencia, incertidumbre y relación.
 
-## 6. Patrocinador: NERDCONF ($500 USD)
-- **Reto:** *Fun Build*
-- **Requisito Técnico No Negociable:** Experiencia adictiva con diseño de sonido procedural en Web Audio API (cero archivos de audio `.mp3` o `.wav` externos), medidor animado de Hype (0 a 100%) y celebración con confetti.
-- **Módulos Clave:**
-  * [`src/hooks/useAudioTribunal.ts`](file:///c:/Users/Santiago%20Arenas/Desktop/Burning%20dev/src/hooks/useAudioTribunal.ts): Sintetizador procedural con osciladores matemáticos, filtros pasa-bajos y envolventes de ganancia (`AudioContext`):
-    * `playGavel()`: Golpe de martillo acústico con transitorio de impacto.
-    * `playSmokeSiren()`: Modulación oscilatoria de sirena de emergencia.
-    * `playVerdictChime()`: Acordes armónicos en modo mayor (Legit) o disonante (Smoke).
-    * `playUnlockSound()`: Sonido de campana de caja registradora al comprar en Test Store.
-    * `playVoteClick()`: Click sutil de alta frecuencia para votación.
-  * [`src/components/LiveVoting.tsx`](file:///c:/Users/Santiago%20Arenas/Desktop/Burning%20dev/src/components/LiveVoting.tsx): **Hype-o-Meter** animado que mide la temperatura de la audiencia en tiempo real.
-- **Por qué está completo:**
-  El paquete no pesa megabytes en audios descargados; todo el paisaje sonoro se sintetiza en tiempo real en la tarjeta de sonido del dispositivo del usuario.
+**Comprobado:** una ejecución real del 08/09 obtuvo respuestas HTTP 200 en ambas búsquedas y ocho fuentes. La segunda consulta se construye a partir de cobertura faltante y evita repetir dominios/URLs.
 
----
+**Límite:** las heurísticas de brechas no demuestran exhaustividad. Un fallback se etiqueta y no verifica el claim.
 
-> [!TIP]
-> **Siguiente Lectura Recomendada:**  
-> Ve a [[03_INTERFAZ_Y_SIGNIFICADO_DE_RESULTADOS|03. Interfaz y Significado de Resultados]] para aprender qué significa cada elemento que el usuario ve en pantalla.
+## 3. Nebius · Applied AI
+
+**Qué pide:** Token Factory dentro del flujo principal, métricas cuantitativas y un caso difícil explícito.
+
+**Código clave:**
+
+- `convex/actions.ts`: llamada OpenAI-compatible y medición.
+- `convex/lib/auditPolicy.ts`: contrato del resultado y política de abstención.
+- `convex/lib/research.ts`: validación de citas.
+- `src/components/VerdictReport.tsx`: resultado, métricas y límites.
+
+**Comprobado:** ejecución real con modelo configurable, 3.792 tokens de entrada, 894 de salida y 18.306 ms de latencia en la petición registrada. El resultado fue `INSUFFICIENT_EVIDENCE`, un caso válido de abstención.
+
+**Límite:** costo y confianza no tienen medición sustentada actualmente; deben verse como no disponibles, no como números de ejemplo.
+
+## 4. Render · Workflows
+
+**Qué pide:** ejecución desacoplada, fallo controlado real, recuperación y ausencia de efectos duplicados.
+
+**Código clave:**
+
+- `workflows/auditor_workflow.ts`: tarea basada en `@renderinc/sdk/workflows`.
+- `convex/workflowDispatch.ts`: despacho privado.
+- `convex/workflows.ts`: callbacks autenticados y leases.
+- `convex/investigations.ts`: checkpoints y estado.
+- `convex/evidence.ts`: deduplicación persistente.
+
+**Implementado:** run idempotente, lease, checkpoints, fallo consumible una vez, reintento y bloqueo de callbacks obsoletos. Las pruebas automatizadas cubren esos contratos.
+
+**Pendiente:** crear/activar el workflow real en Render y registrar logs de una ejecución con fallo. El bloqueo observado es el paso de facturación/Add Card. No presentar el botón como prueba de Render hasta tener ese run.
+
+## 5. RevenueCat · Subscriptions
+
+**Qué pide:** compra web mediante Test Store, producto `pro_auditor_monthly` y entitlement `pro_auditor_access`.
+
+**Código clave:**
+
+- `src/hooks/useRevenueCat.ts`: SDK, offering, compra y sincronización.
+- `convex/entitlements.ts`: consulta privada y validación del acceso.
+- `src/components/ProPaywallModal.tsx`: compra, dossier y exportación.
+
+**Comprobado:** producto, entitlement y offering asociados en el dashboard. Compra válida visible como `New Sub`; cancelar o seleccionar compra fallida conserva Free. Los bypasses fueron eliminados.
+
+**Pendiente:** configurar `REVENUECAT_SECRET_KEY` en Convex y comprobar desbloqueo, restauración, exportación y expiración con el mismo cliente.
+
+## 6. NERDCONF · Fun Build
+
+**Qué pide:** una experiencia funcional, original y divertida.
+
+**Código clave:**
+
+- `src/hooks/useAudioTribunal.ts`: audio generado con Web Audio API.
+- `src/components/LiveVoting.tsx`: votos, Hype-o-Meter y feed.
+- `src/components/VerdictReport.tsx`: cierre visual y confetti.
+
+**Comprobado:** recorrido multisesión, medidor reactivo y audio procedural sin archivos `.mp3`/`.wav`.
+
+**Para el video:** habilitar audio mediante un gesto, usar una sola reacción corta y mantener legible la evolución del medidor.
+
+## Frases Que Sí Puedo Defender
+
+- “Implementamos los seis objetivos en el producto.”
+- “Convex, Linkup, Nebius y la experiencia multijugador tienen comprobaciones registradas.”
+- “Render está preparado en código, pero su ejecución real sigue pendiente.”
+- “RevenueCat procesó una compra Test Store; falta cerrar la autorización server-side end-to-end.”
+
+## Frases Que No Debo Usar Todavía
+
+- “Los seis retos están verificados al 100 %.”
+- “Render ya recuperó una ejecución real” sin run ID y logs.
+- “RevenueCat desbloqueó el dossier desde servidor” sin la prueba posterior a configurar la clave privada.
+- “Nebius tiene 88 % de confianza” o un costo concreto si la UI no posee una medición real.
+
+Siguiente: [[03_INTERFAZ_Y_SIGNIFICADO_DE_RESULTADOS|Interfaz y significado de resultados]].

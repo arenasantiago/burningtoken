@@ -1,120 +1,106 @@
-# 🧠 05. Inferencia Pericial con Nebius Token Factory
-#nebius #applied-ai #llm #token-factory #qwen #anti-alucinacion
-
-Regresar al [[00_INDICE_TRUTH_TRIBUNAL|Índice Maestro]].
-
+---
+tags:
+  - nebius
+  - llm
+  - evidencia
+  - trazabilidad
+updated: 2026-09-12
 ---
 
-## 🧭 ¿Qué es Nebius Token Factory y por qué se utiliza?
+# 05 · Nebius Token Factory En Detalle
 
-**Nebius AI** es una plataforma de nube especializada en IA que ofrece clusters de GPUs de alto rendimiento con una API OpenAI-compatible llamada **Nebius Token Factory**.
+Volver a [[00_INDICE_TRUTH_TRIBUNAL|Índice]].
 
-En **Truth Tribunal**, Nebius actúa como el **Cerebro Jurídico y Pericial**:
-* No se utiliza para escribir texto genérico o creativo.
-* Se utiliza como un **auditor forense adversarial** que contrasta afirmaciones contra evidencias web recolectadas por Linkup, detecta exageraciones publicitarias y calcula un veredicto estructurado en JSON.
+## Rol En El Producto
+
+Nebius no busca las páginas. Recibe el claim y los fragmentos obtenidos por Linkup para producir una evaluación estructurada. Su trabajo es relacionar evidencia, no crear hechos nuevos.
 
 ```mermaid
-flowchart TD
-    subgraph Entrada["1. Insumos de Entrada"]
-        Claim["Claim del Usuario\n(ej: 'AGI con 99.9% precisión')"]
-        Evidencias["Evidencias Web Linkup\n(Fase 1 y 2: URLs + Snippets)"]
-    end
-
-    subgraph NebiusCore["2. Inferencia en Nebius Token Factory"]
-        Model["Modelo Qwen/Qwen3-30B-A3B-Instruct\n(api.studio.nebius.ai)"]
-        PromptPericial["Prompt de Auditoría Adversarial\n(Exige citas literales obligatorias)"]
-    end
-
-    subgraph Validacion["3. Validador Anti-Alucinaciones (Convex)"]
-        VerificarCitas{"¿Las citas coinciden\npalabra por palabra\ncon los snippets?"}
-        Exito["Veredicto Validado\n(CERTIFIED_SMOKE, PLAUSIBLE, etc.)"]
-        Fallo["Abstención Pericial\n(INSUFFICIENT_EVIDENCE)"]
-    end
-
-    Entrada --> PromptPericial
-    PromptPericial --> Model
-    Model --> Validacion
-    VerificarCitas -->|"Sí: Trazabilidad Verificada"| Exito
-    VerificarCitas -->|"No: Alucinación Detectada"| Fallo
+flowchart LR
+    C[Claim] --> P[Prompt pericial]
+    E[Evidencias Linkup] --> P
+    P --> N[Nebius Token Factory]
+    N --> J[JSON propuesto]
+    J --> V[Validación backend]
+    V -->|válido| R[Resultado]
+    V -->|sin citas suficientes| A[Abstención]
 ```
 
----
+## Modelo Y Contrato
 
-## 🤖 El Modelo Seleccionado: `Qwen3-30B`
+- Modelo por defecto: `Qwen/Qwen3-30B-A3B-Instruct-2507`.
+- Variable configurable: `NEBIUS_MODEL`.
+- API: compatible con OpenAI Chat Completions.
+- Salida esperada: JSON con veredicto, hype score, resumen, evaluaciones por fuente y caso límite.
 
-* **Identificador oficial en Nebius:** `Qwen/Qwen3-30B-A3B-Instruct-2507` (configurable mediante la variable `NEBIUS_MODEL` en Convex Cloud).
-* **Por qué se eligió:**
-  1. **Velocidad de generación de tokens:** Supera los 80-100 tokens/segundo en la infraestructura de Nebius, permitiendo que la auditoría termine en ~1.2 segundos.
-  2. **Rigor lógico y adherencia a JSON:** Es excepcional respetando contratos estrictos de esquemas JSON sin añadir texto conversacional no deseado.
-  3. **Capacidad de extracción de citas:** Puede aislar fragmentos textuales de 10 a 50 palabras dentro de un snippet extenso con total fidelidad.
+La disponibilidad de modelos puede cambiar. Por eso el modelo no debe estar asumido como una constante eterna y los errores se registran de manera explícita.
 
----
+## Barrera Contra Citas Inventadas
 
-## 🛡️ El Mecanismo Anti-Alucinaciones: Validación de Citas Literales
+Para clasificar una fuente como respaldo o contradicción:
 
-El mayor riesgo de usar un LLM en un "Tribunal de la Verdad" es que el modelo invente ("alucine") un dato para justificar un veredicto.
+1. El modelo devuelve el ID de la evidencia.
+2. Incluye una cita literal y una explicación.
+3. El backend normaliza texto y compara la cita con el fragmento real.
+4. Si no coincide, la relación se descarta o queda pendiente.
+5. Si no quedan relaciones suficientes, la política se abstiene.
 
-En [`convex/lib/research.ts`](file:///c:/Users/Santiago%20Arenas/Desktop/Burning%20dev/convex/lib/research.ts), el sistema implementa una **barrera matemática de validación cruzada**:
+Esto reduce un tipo concreto de alucinación. No demuestra que el fragmento sea verdadero, completo, reciente o representativo.
 
-1. **La regla exigida al LLM en el prompt:**  
-   *"Si afirmas que una fuente respalda o contradice el claim, estás OBLIGADO a incluir el campo `quote` con una cita literal exacta copiada del snippet provisto."*
-2. **El validador en el backend:**
-   ```typescript
-   export function validateEvidenceAssessments(assessments, sources) {
-     return assessments.filter(item => {
-       const source = sources.find(s => s.evidenceId === item.evidenceId);
-       if (!source) return false;
+## Política De Abstención
 
-       // ¿La cita existe palabra por palabra dentro del snippet real?
-       const quoteValid = source.snippet.includes(item.quote);
-       return quoteValid && item.reason.trim().length > 5;
-     });
-   }
-   ```
-3. **Consecuencia:**  
-   Si el LLM inventa una cita que no existía en la página web encontrada por Linkup, **el validador la descarta automáticamente**. Si no quedan citas válidas, el sistema emite `INSUFFICIENT_EVIDENCE` en lugar de emitir un juicio infundado.
+`INSUFFICIENT_EVIDENCE` se utiliza cuando:
 
----
+- faltan fuentes suficientes;
+- Linkup o Nebius fallan;
+- la respuesta no cumple el contrato;
+- las citas no son trazables;
+- el claim está fuera del alcance recuperado.
 
-## 📊 Medición Real de las 4 Métricas Cuantitativas
+**Abstenerse no significa que el claim sea falso.** Significa que el sistema no reunió base suficiente para una conclusión defendible.
 
-El reto de Nebius exige presentar métricas en vivo. Aquí está el origen de cada una:
+## Métricas Y Origen
 
-### 1. Latencia Neta del Modelo (ms)
-* **Cómo se mide:** Se toma el timestamp justo antes de disparar el `fetch` a Nebius y se resta al recibir el primer byte de respuesta:
-  ```typescript
-  const start = performance.now();
-  const response = await fetch("https://api.studio.nebius.ai/v1/chat/completions", ...);
-  const latencyMs = Math.round(performance.now() - start);
-  ```
-* **Diferencia clave:** Mide *exclusivamente* el tiempo de procesamiento de la GPU de Nebius, no el tiempo de Linkup ni la red completa.
+### Latencia
 
-### 2. Conteo Real de Tokens (E/S)
-* Se lee directamente del objeto `usage` devuelto por la API de Nebius:
-  ```typescript
-  const inputTokens = data.usage?.prompt_tokens;
-  const outputTokens = data.usage?.completion_tokens;
-  ```
-* Si la llamada falló o no tiene `usage`, la UI muestra honestamente `No disponible` en vez de inventar números fijos.
+Se mide alrededor de la petición `fetch` a Nebius. Incluye el viaje de esa petición y la inferencia del proveedor; no debe describirse como tiempo puro de GPU ni como duración total de la auditoría.
 
-### 3. Costo Estimado en USD
-* Se calcula multiplicando los tokens de entrada y salida por el precio oficial por millón de tokens en Nebius:
-  $$\text{Costo} = (\text{prompt\_tokens} \times \$0.10 / 10^6) + (\text{completion\_tokens} \times \$0.30 / 10^6)$$
+### Tokens
 
-### 4. Confianza y Caso Límite (*Edge Case*)
-* **Confianza:** Ponderación pericial calculada a partir del nivel de incertidumbre (`LOW`/`MEDIUM`/`HIGH`) de las fuentes primarias validadas.
-* **Caso Límite:** Documenta las limitaciones del LLM (ejemplo: fragmentos web desactualizados, paywalls de medios de noticias o falta de acceso a código binario ejecutable).
+Se leen de `usage.prompt_tokens` y `usage.completion_tokens`. Si el proveedor no devuelve `usage`, la UI muestra “No disponible”.
 
----
+### Costo
 
-## ✨ Nuevo Rol: Asistente Pericial de Prompts
+Requiere una tabla de precios vigente, modelo exacto y fórmula versionada. Actualmente debe permanecer no disponible si esas condiciones no están acreditadas.
 
-Además del veredicto, Nebius ahora se utiliza en [`convex/lib/claimSuggestions.ts`](file:///c:/Users/Santiago%20Arenas/Desktop/Burning%20dev/convex/lib/claimSuggestions.ts) mediante la función `generateSuggestionsWithNebius()`:
+### Confianza
 
-Cuando el usuario escribe un claim en el Lobby, Nebius analiza la semántica y le ofrece **3 formulaciones empíricas y verificables** para garantizar que la posterior auditoría web encuentre datos duros y benchmarks en lugar de terminar en una abstención.
+Una probabilidad útil requiere definición, calibración y evaluación. La calidad aparente de las fuentes no basta para afirmar “88 % de confianza”. Actualmente debe permanecer no disponible salvo que se implemente y documente una metodología.
 
----
+### Caso Límite
 
-> [!TIP]
-> **Siguiente Lectura:**  
-> Revisa la hoja de ruta visual en [[06_HOJA_DE_RUTA_MEJORA_ESTETICA|06. Hoja de Ruta para la Mejora Estética]].
+Describe una limitación concreta: snippets incompletos, fuentes secundarias, paywalls, ausencia de repositorios privados o imposibilidad de ejecutar un benchmark. Es información para interpretar el resultado, no una métrica de precisión.
+
+## Ejecución Real Registrada
+
+El 08/09 una comprobación real produjo:
+
+- Dos respuestas Linkup HTTP 200.
+- Una respuesta Nebius HTTP 200.
+- Ocho fuentes recuperadas.
+- 3.792 tokens de entrada.
+- 894 tokens de salida.
+- 18.306 ms de latencia de petición.
+- Resultado `INSUFFICIENT_EVIDENCE`.
+
+El reporte está en `docs/verification/research-live-2026-09-08.json`. Esta corrida comprueba integración y una limitación observada; no es un benchmark general de precisión.
+
+## Asistente De Claims
+
+El asistente propone formulaciones empíricas cuando el usuario escribe algo demasiado amplio. Su objetivo es aumentar falsabilidad y mejorar las posibilidades de recuperación. Una sugerencia sigue siendo una propuesta; no se convierte en verdad por venir de un modelo.
+
+## Respuesta Corta Para El Jurado
+
+> “Linkup recupera las fuentes y Nebius las evalúa. Para marcar respaldo o contradicción exigimos una cita literal que el backend valida contra el fragmento original. Si no hay trazabilidad suficiente, el tribunal se abstiene.”
+
+Siguiente: [[06_HOJA_DE_RUTA_MEJORA_ESTETICA|Diseño y evolución visual]].

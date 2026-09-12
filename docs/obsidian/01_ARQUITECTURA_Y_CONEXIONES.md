@@ -1,113 +1,114 @@
-# 🏗️ 01. Arquitectura del Sistema y Flujo de Datos
-#arquitectura #convex #linkup #nebius #render #revenuecat
-
-Regresar al [[00_INDICE_TRUTH_TRIBUNAL|Índice Maestro]].
-
+---
+tags:
+  - arquitectura
+  - convex
+  - linkup
+  - nebius
+  - render
+  - revenuecat
+updated: 2026-09-12
 ---
 
-## 🧭 Visión General de la Arquitectura
+# 01 · Arquitectura Y Conexiones
 
-**Truth Tribunal** es una aplicación web multijugador en tiempo real (SPA) donde **el estado no se refresca manualmente**: cada cambio en la base de datos se refleja instantáneamente en todos los navegadores conectados gracias a la reactividad de **Convex**.
+Volver a [[00_INDICE_TRUTH_TRIBUNAL|Índice]].
+
+## Modelo Mental
+
+Truth Tribunal tiene tres capas:
+
+1. **Experiencia:** React presenta salas, votos, investigación, fuentes y resultado.
+2. **Estado y reglas:** Convex conserva la verdad compartida y protege las operaciones sensibles.
+3. **Proveedores:** Linkup busca, Nebius evalúa, Render orquesta trabajo y RevenueCat acredita acceso Pro.
 
 ```mermaid
 flowchart TD
-    subgraph Frontend["SPA Frontend (React 18 + Vite) - Desplegado en convex.site"]
-        UserA["Navegador A (Host)"]
-        UserB["Navegador B (Invitado)"]
-        WebAudio["Web Audio API (Procedural)"]
-        RC_SDK["RevenueCat Web SDK (Test Store)"]
-    end
-
-    subgraph ConvexCloud["Backend Serverless Convex Cloud"]
-        DB[("Base de Datos Reactiva\n- rooms\n- claims\n- votes\n- investigations\n- evidence\n- userEntitlements")]
-        Mutations["Mutaciones Atómicas\n(createWithClaim, castVote, etc.)"]
-        Actions["Convex Actions Asíncronas\n(executeFullAudit, suggestAuditableClaims)"]
-    end
-
-    subgraph Providers["APIs de Proveedores & Infraestructura"]
-        LinkupAPI["Linkup API\n(Deep Research Iterativo)"]
-        NebiusAPI["Nebius Token Factory\n(LLM Qwen3-30B OpenAI-compatible)"]
-        RenderWorker["Render Workflows\n(Orquestación & Idempotencia)"]
-    end
-
-    UserA <-->|"WebSocket Reactivo (Queries/Mutations)"| ConvexCloud
-    UserB <-->|"WebSocket Reactivo (Queries/Mutations)"| ConvexCloud
-    RC_SDK -->|"Compra Sandbox"| DB
-
-    Actions -->|"Fase 1: Búsqueda Inicial\nFase 2: Búsqueda de Contraste"| LinkupAPI
-    Actions -->|"Inferencia Pericial &\nExtracción de Citas"| NebiusAPI
-    Actions <-->|"Checkpoints & Resiliencia"| RenderWorker
+    H[Host] <--> F[React + Vite]
+    G[Invitado] <--> F
+    F <--> C[Convex Cloud]
+    C --> L1[Linkup · búsqueda inicial]
+    L1 --> BP[Plan de brechas]
+    BP --> L2[Linkup · contraste]
+    L2 --> N[Nebius · evaluación]
+    N --> C
+    C -. despacho privado .-> R[Render Workflow]
+    R -. callbacks autenticados .-> C
+    F --> RC[RevenueCat Web SDK]
+    RC --> RAPI[RevenueCat API]
+    C --> RAPI
 ```
 
----
+## Responsabilidad De Cada Pieza
 
-## 🔄 El Ciclo de Vida de una Auditoría Paso a Paso
-
-### Paso 1: Creación Atómica de Sala y Claim
-1. El Host entra en la aplicación (`src/components/RoomLobby.tsx`).
-2. Puede escribir una afirmación o usar el **Asistente Pericial de Prompts** (`✨ Optimizar con Asistente Pericial`) para convertir una idea vaga en una hipótesis contrastable.
-3. Al hacer clic en *"Abrir Sala e Iniciar Juicio"*, se dispara la mutación atómica `createWithClaim` en [`convex/rooms.ts`](file:///c:/Users/Santiago%20Arenas/Desktop/Burning%20dev/convex/rooms.ts):
-   * Inserta la sala con su código normalizado (ej: `HYPE-404`).
-   * Inserta el claim asociado.
-   * Vincula `activeClaimId` a la sala en una sola transacción.
-   * **Invariante:** Nunca queda un invitado esperando con claim indefinido.
-
-### Paso 2: Votación Multijugador en Vivo (Convex Multiplayer)
-1. El Host comparte la URL con el código (`?room=HYPE-404`).
-2. Cualquier invitado abre el enlace en otra pestaña o ventana de incógnito (`src/components/LiveVoting.tsx`).
-3. Ambos votan en tiempo real:
-   * **`SMOKE` (Puro Humo):** Consideran que es una exageración publicitaria.
-   * **`LEGIT` (Verídico):** Creen que la promesa tiene sustento técnico.
-4. Convex actualiza el conteo de votos instantáneamente vía suscripción reactiva (`api.votes.getCounts`), moviendo las barras de porcentaje y el **Hype-o-Meter** sin recargar la página.
-
-### Paso 3: Disparo de la Auditoría Autónoma
-1. El Host presiona *"Desplegar Auditoría Autónoma"*.
-2. La mutación `startOrGet` en [`convex/investigations.ts`](file:///c:/Users/Santiago%20Arenas/Desktop/Burning%20dev/convex/investigations.ts) crea el registro de investigación con un `workflowRunId` único y cambia el estado de la sala a `"auditing"`.
-3. Se invoca la acción `executeFullAudit` en [`convex/actions.ts`](file:///c:/Users/Santiago%20Arenas/Desktop/Burning%20dev/convex/actions.ts).
-
-### Paso 4: Deep Research con Linkup (Dos Fases)
-1. **Fase 1 (Búsqueda Inicial):** Consulta a Linkup para encontrar fuentes primarias y benchmarks.
-   * Se normalizan y limpian las URLs.
-   * Se insertan en la tabla `evidence` de Convex con deduplicación automática.
-   * Se guarda el checkpoint `linkup_initial_search_done`.
-2. **Fase 2 (Contraste y Detección de Brechas):**
-   * El algoritmo `buildContrastPlan` analiza los hallazgos de la Fase 1 e identifica qué falta por verificar (brechas de cobertura).
-   * Se excluyen los dominios web ya visitados.
-   * Se ejecuta una segunda búsqueda en Linkup con los términos de contraste y contradicciones.
-   * Se almacenan las evidencias de contraste.
-
-### Paso 5: Síntesis Pericial con Nebius Token Factory
-1. Se compilan los textos y fragmentos encontrados.
-2. Se envía una petición HTTP a **Nebius Token Factory** (`https://api.studio.nebius.ai/v1/chat/completions`) usando el modelo `Qwen/Qwen3-30B-A3B-Instruct-2507`.
-3. El LLM devuelve:
-   * Veredicto pericial (`VERIFIED_LEGIT`, `PLAUSIBLE`, `CERTIFIED_SMOKE`, o `INSUFFICIENT_EVIDENCE`).
-   * Porcentaje de Hype (0 a 100%).
-   * Citas textuales obligatorias extraídas de las fuentes para sustentar su decisión.
-   * Caso límite documentado (*Edge Case*).
-4. El backend extrae el objeto `usage` (tokens de entrada y salida) y calcula la latencia neta de inferencia en milisegundos.
-
-### Paso 6: Emisión del Veredicto y Sonido Procedural
-1. Convex guarda el veredicto en `investigations.saveVerdict` y cambia el estado de la sala a `"verdict"`.
-2. Todos los navegadores conectados reciben la notificación reactiva simultáneamente:
-   * Si es `CERTIFIED_SMOKE`, suena la sirena antismoke y caen alertas rojas.
-   * Si es `VERIFIED_LEGIT` o `PLAUSIBLE`, suena el acorde armónico y explotan partículas de confetti (`canvas-confetti`).
-3. Se renderiza el panel con las 4 métricas periciales en vivo y el bloque Pro de RevenueCat.
-
----
-
-## 🗄️ Esquema de Base de Datos en Convex (`convex/schema.ts`)
-
-| Tabla | Propósito Principal | Índices Clave |
+| Componente | Responsabilidad | No debe hacer |
 |---|---|---|
-| `rooms` | Almacena las salas multijugador, código (`HYPE-XXX`), estado y host. | `by_code` |
-| `claims` | Texto de la afirmación sometida a juicio, autor y URL de origen. | `by_room` |
-| `votes` | Votos individuales (`LEGIT` vs `SMOKE`) con ID de votante para evitar duplicados. | `by_claim`, `by_claim_voter` |
-| `investigations` | Estado del workflow, checkpoints de Render, veredicto final y métricas de Nebius. | `by_claim` |
-| `evidence` | Hallazgos recolectados por Linkup (Fase 1 y 2), URLs, citas y nivel de incertidumbre. | `by_investigation` |
-| `userEntitlements` | Estado Pro verificado por RevenueCat Web SDK (`pro_auditor_access`). | `by_user` |
+| React | Capturar acciones y representar estado reactivo. | Decidir por sí solo permisos, Pro o resultado final. |
+| Convex | Persistir datos, autorizar host, sincronizar clientes y ejecutar acciones privadas. | Exponer secretos al navegador. |
+| Linkup | Recuperar fuentes web en dos consultas. | Emitir el veredicto. |
+| Nebius | Relacionar claim y fuentes en una salida estructurada. | Convertir una cita inventada en evidencia. |
+| Render | Ejecutar el workflow fuera del ciclo de vida del navegador. | Usar memoria local como única fuente de checkpoints. |
+| RevenueCat | Gestionar compra sandbox y entitlement. | Conceder Pro por una respuesta sólo del cliente. |
 
----
+## Recorrido De Una Auditoría
 
-> [!TIP]
-> **Siguiente Lectura Recomendada:**  
-> Pasa a [[02_LOS_6_RETOS_SPONSORS|02. Los 6 Retos Patrocinados]] para entender en detalle cómo se cumple cada uno de los requisitos de los premios del hackathon.
+### 1. Sala Y Claim Atómicos
+
+`convex/rooms.ts` crea la sala y el claim en una misma mutación. Esto evita que un invitado vea una sala válida sin `activeClaimId`.
+
+### 2. Identidad Y Autorización
+
+- La sesión ligera distingue participantes y votos.
+- El host recibe un token aleatorio almacenado en `sessionStorage`.
+- Convex guarda/verifica su hash para acciones exclusivas del host.
+- Conocer el `hostUserId` público no permite controlar la sala.
+
+### 3. Multiplayer Reactivo
+
+Los dos navegadores se suscriben a queries de Convex. Un voto cambia la base de datos y Convex envía el nuevo estado a todos los clientes conectados, sin polling manual ni recarga.
+
+### 4. Inicio De Investigación
+
+`convex/investigations.ts` crea o reutiliza una investigación para el claim. La UI cambia a auditoría a partir del estado compartido, no de una animación aislada.
+
+### 5. Búsqueda En Dos Fases
+
+- Fase inicial: Linkup obtiene fuentes, URLs y fragmentos.
+- Plan de brechas: `convex/lib/research.ts` identifica cobertura faltante y dominios ya utilizados.
+- Fase de contraste: se genera otra consulta y se excluyen duplicados.
+
+### 6. Evaluación Nebius
+
+Nebius recibe el claim y las evidencias. `convex/lib/auditPolicy.ts` valida estructura y `convex/lib/research.ts` verifica que las citas atribuidas existan en los fragmentos recibidos.
+
+### 7. Persistencia Y Resultado
+
+Convex guarda evidencias, métricas y veredicto. Todos los participantes reciben el resultado y el audio se dispara con base en la transición reactiva compartida.
+
+### 8. Acceso Pro
+
+El Web SDK inicia la compra Test Store. Convex consulta RevenueCat con una clave privada y sólo persiste Pro si coinciden entorno sandbox, producto, entitlement y vigencia.
+
+## Tablas Principales
+
+| Tabla | Qué representa |
+|---|---|
+| `rooms` | Sala, código, etapa, host y claim activo. |
+| `claims` | Afirmaciones presentadas dentro de una sala. |
+| `votes` | Voto por claim y participante. |
+| `investigations` | Progreso, lease, checkpoints, run y resultado. |
+| `evidence` | Fuentes iniciales y de contraste con procedencia. |
+| `userEntitlements` | Acceso Pro, entorno, producto, vigencia y verificación. |
+
+Consultar `convex/schema.ts` para el contrato vigente; esta tabla es una explicación, no el esquema formal.
+
+## Estado Real De Las Conexiones
+
+| Conexión | Estado al 12/09 |
+|---|---|
+| Navegadores ↔ Convex | Verificada en recorrido Host/Invitado. |
+| Convex → Linkup → Nebius | Verificada con proveedores reales el 08/09. |
+| Convex ↔ Render | Implementada y probada con dobles; ejecución en Render pendiente. |
+| Web SDK ↔ RevenueCat | Compra válida, cancelación y fallo observados. |
+| Convex ↔ RevenueCat API | Implementada; falta clave privada y prueba end-to-end. |
+
+Siguiente: [[02_LOS_6_RETOS_SPONSORS|Los seis retos sponsors]].

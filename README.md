@@ -1,124 +1,132 @@
 <div align="center">
 
-# ⚖️ Truth Tribunal
+# Truth Tribunal
 
 ### Mucho hype. Que hablen las pruebas.
 
-Un tribunal multijugador para poner a prueba promesas de IA, pitches de startups y afirmaciones virales.
+Un tribunal multijugador para auditar promesas de IA, pitches de startups y afirmaciones virales con votos en tiempo real, investigación web y evaluación trazable.
 
-**[Abrir el tribunal](https://brave-lemur-868.convex.site)** · **[Estado técnico](docs/IMPLEMENTATION_STATUS.md)** · **[Plan de entrega](docs/HACKATHON_PLAN.md)**
+**[Probar la aplicación](https://brave-lemur-868.convex.site)** · **[Ver estado técnico](docs/IMPLEMENTATION_STATUS.md)** · **[Preparar la demo](docs/obsidian/08_GUION_Y_CHECKLIST_DEL_VIDEO.md)**
 
-React 18 · TypeScript · Convex · Linkup · Nebius
+React 18 · TypeScript · Convex · Linkup · Nebius · Render · RevenueCat
 
-*Creado para NERDCONF — Burning Token 2026*
+*Construido para NERDCONF · Burning Token 2026*
 
 </div>
 
 ---
 
-## 💡 La idea
+## El Producto
 
-Internet está lleno de promesas extraordinarias: una IA que reemplaza equipos enteros, un producto que supera todos los benchmarks o una startup que asegura haber resuelto lo imposible. Compartirlas toma segundos; comprobarlas exige trabajo.
+Internet permite publicar una promesa extraordinaria en segundos, pero comprobarla exige buscar fuentes, contrastar condiciones y reconocer lo que no se puede demostrar.
 
-**Truth Tribunal convierte esa comprobación en una experiencia colectiva.** Alguien presenta una afirmación, invita a una sala y el público vota: **LEGIT** o **SMOKE**. Después, el sistema busca fuentes, investiga lo que falta y produce una evaluación con evidencias y limitaciones visibles.
+**Truth Tribunal transforma esa comprobación en una experiencia colectiva.** Un host presenta una afirmación, comparte una sala y el jurado vota **LEGIT** o **SMOKE**. Después, el sistema investiga en dos fases y emite una evaluación basada en citas, procedencia e incertidumbre visibles.
 
-La tensión está en descubrir si la intuición del jurado coincide con lo que sostienen las fuentes. El voto representa opinión; la investigación aporta argumentos para revisarla.
+> **Historia central de la demo:** el jurado vota; las fuentes ponen a prueba el hype.
 
-> **Ejemplo ilustrativo:** «Nuestra IA reemplaza a diez desarrolladores y reduce los costos un 90 %».
-> El tribunal busca qué se midió, frente a qué alternativa, bajo qué condiciones y si existen pruebas independientes. El resultado depende de lo encontrado; también puede ser **evidencia insuficiente**.
+El voto expresa la intuición del público. La investigación no intenta confirmar esa intuición: aporta evidencia para sostenerla, corregirla o abstenerse cuando las fuentes no alcanzan.
 
-## 🎮 Así se vive un caso
+## Cómo Se Vive Un Caso
 
-1. **Abre la sala.** Presenta un claim propio o usa un ejemplo. El asistente ayuda a convertir ideas ambiguas en preguntas comprobables.
-2. **Convoca al jurado.** Comparte el código `HYPE-XXX` o el enlace de la sala. Los invitados eligen un apodo.
-3. **Vota y mira el pulso colectivo.** Los votos alimentan un Hype-o-Meter animado, con sonidos procedurales y actividad compartida.
-4. **Lanza la investigación.** Una primera búsqueda reúne hallazgos; una segunda consulta se construye a partir de las brechas detectadas y busca contraste.
-5. **Examina el resultado.** Consulta fuentes, fragmentos, incertidumbre y métricas disponibles. Si no hay sustento suficiente, el tribunal lo indica y ofrece reformular el claim.
-6. **Abre otro caso.** El host puede continuar en la misma sala, conservando la dinámica del grupo.
+1. **Presentar el claim.** El host escribe una promesa o utiliza el asistente para convertir una idea ambigua en una afirmación comprobable.
+2. **Convocar al jurado.** Comparte el código `HYPE-XXX` o el enlace de la sala; cada invitado elige un apodo.
+3. **Votar en vivo.** Convex sincroniza votos, participantes y el Hype-o-Meter entre navegadores sin recargar.
+4. **Investigar en dos fases.** Linkup reúne fuentes iniciales y luego formula una búsqueda de contraste a partir de las brechas encontradas.
+5. **Evaluar la evidencia.** Nebius relaciona fuentes y claim; cualquier respaldo o contradicción debe incluir una cita verificable en el fragmento original.
+6. **Emitir el resultado.** El tribunal muestra veredicto, limitaciones, tokens y latencia disponibles. La evidencia insuficiente es un resultado válido.
+7. **Continuar la sesión.** El host puede abrir otro caso sin abandonar la sala ni perder al jurado.
 
-## ✨ Qué construimos
+## Diferenciales
 
-| Experiencia | Qué aporta |
+| Capacidad | Qué aporta |
 |---|---|
-| **Tribunal en tiempo real** | Salas, votos y resultados reactivos con Convex; creación atómica de sala y claim. |
-| **Investigación en dos fases** | Linkup reúne fuentes y ejecuta un seguimiento derivado de los hallazgos iniciales. |
-| **Evaluación con trazabilidad** | Nebius recibe el claim y las evidencias; las relaciones de respaldo o contradicción requieren fragmentos trazables. |
-| **Asistente de formulación** | Sugiere afirmaciones empíricas cuando la pregunta es ambigua o la auditoría queda sin evidencia suficiente. |
-| **Una sala que continúa** | Nuevos casos sin crear otra sala, apodos para invitados y audio de veredicto vinculado al estado compartido. |
-| **Personalidad de tribunal** | Martillazo, sirena, sonidos de voto, confetti y tacómetro de hype; audio generado con Web Audio, sin archivos de sonido externos. |
-| **Pro en demostración** | Paywall, mayor límite de resultados por fase y exportación Markdown del dossier. La compra y el contenido pericial tienen limitaciones descritas abajo. |
+| **Multiplayer real** | Sala, votos, etapas y resultados reactivos; creación atómica de sala y claim. |
+| **Investigación dependiente** | La segunda búsqueda no está prefijada: responde a lo que faltó en la primera. |
+| **Trazabilidad pericial** | URLs, fragmentos, procedencia, incertidumbre y validación literal de citas. |
+| **Abstención honesta** | Si falla un proveedor o no existe sustento suficiente, no se inventa una acusación. |
+| **Identidad lúdica** | Tacómetro de hype, confetti y audio procedural generado con Web Audio API. |
+| **Experiencia bilingüe** | Interfaz completa en español e inglés, con selección persistente. |
+| **Profundidad Pro** | Fuentes globales, matriz de riesgo y dossier exportable en PDF o Markdown. |
 
-El producto puede servir para debatir noticias tecnológicas, contrastar pitches y practicar lectura crítica de promesas comerciales. La línea Pro explora informes de due diligence para equipos de inversión; hoy sigue siendo un prototipo.
-
-## 🔎 Estado real del proyecto
-
-**Revisión documental: 11 de septiembre de 2026.** El registro conserva pruebas locales, una ejecución real de Linkup/Nebius y despliegues anteriores. Esto no certifica todos los recorridos actuales en producción.
-
-| Reto objetivo | Implementación y evidencia disponible | Qué falta cerrar |
-|---|---|---|
-| **Convex · Multiplayer** | Estado reactivo y static hosting; frontend y backend publicados el 11 de septiembre. | Recorrido completo Host/Invitado comprobado el 11/09; falta grabación final para entrega. |
-| **Linkup · Deep Research** | Dos consultas dependientes; ejecución real registrada el 8 de septiembre con persistencia en memoria durante la prueba. | Demostrar el recorrido actual completo en el sitio publicado. |
-| **Nebius · Applied AI** | Inferencia real registrada, tokens de `usage`, latencia de la petición y un caso de evidencia insuficiente documentado. | Evaluación representativa; costo y confianza siguen sin medición disponible. |
-| **Render · Workflows** | Prototipo de worker y mecanismos parciales de checkpoints/deduplicación en Convex. | Conectar Render Workflows y demostrar recuperación sin duplicados. El flujo actual llama directamente a una acción de Convex. |
-| **RevenueCat · Subscriptions** | SDK, paywall y descarga `.md` presentes. | Compra Test Store y entitlement comprobados en backend. El flujo actual puede conceder Pro sin compra válida; el dossier usa riesgos prefijados. |
-| **NERDCONF · Fun Build** | Audio procedural, votación y tacómetro; comprobaciones interactivas anteriores registradas. | Recorrido multisesión grabado y prueba con alguien externo. |
-
-**Principio del tribunal:** una simulación no cuenta como evidencia. El flujo de investigación identifica fallbacks y puede abstenerse; las pantallas Pro aún contienen textos de verificación y riesgos fijos que no deben interpretarse como una compra comprobada ni como conclusiones del caso.
-
-Consulta [el registro de implementación](docs/IMPLEMENTATION_STATUS.md) para conocer el alcance de cada comprobación y sus pendientes.
-
-## 🏗️ Cómo funciona por dentro
+## Arquitectura
 
 ```mermaid
-flowchart TD
-    H[Host e invitados] --> UI[React + Vite + Tailwind]
-    UI <--> DB[Convex: salas, votos, evidencias y resultados]
-    UI --> A[Acción de auditoría en Convex]
-    A --> L1[Linkup: búsqueda inicial]
-    L1 --> P[Plan de contraste según hallazgos]
-    P --> L2[Linkup: segunda búsqueda]
-    L2 --> N[Nebius: evaluación de evidencias]
-    N --> DB
-    UI -. Pro parcial .-> RC[RevenueCat]
-    R[Render Workflows: conexión pendiente] -. objetivo de orquestación .-> A
+flowchart LR
+    U[Host e invitados] <--> UI[React + Vite]
+    UI <--> C[Convex Cloud]
+    C --> L1[Linkup · fase inicial]
+    L1 --> P[Plan de brechas]
+    P --> L2[Linkup · contraste]
+    L2 --> N[Nebius · evaluación]
+    N --> C
+    C -. despacho .-> R[Render Workflows]
+    UI --> RC[RevenueCat Web SDK]
+    RC --> RCS[Verificación server-side]
+    RCS --> C
 ```
 
-El frontend se publica en Convex Static Hosting. Convex conserva el estado compartido; las llamadas a Linkup y Nebius se ejecutan en el backend. Render y la verificación de suscripciones son los siguientes cierres de integración.
+- **Frontend:** React 18, TypeScript, Vite y Tailwind; publicado con Convex Static Hosting.
+- **Estado compartido:** Convex sincroniza salas, votos, investigaciones, evidencias y resultados.
+- **Investigación:** acciones privadas llaman a Linkup y Nebius sin exponer credenciales al navegador.
+- **Resiliencia:** el contrato de Render usa leases, checkpoints e idempotencia persistidos en Convex.
+- **Suscripción:** RevenueCat Test Store gestiona la compra sandbox y Convex valida el entitlement desde servidor.
 
-```text
-src/components/       Salas, votación, evidencias, veredicto y paywall
-src/hooks/            Audio procedural e integración del SDK RevenueCat
-convex/               Datos, mutaciones y acciones de investigación
-convex/lib/           Política de evaluación, contraste y sugerencias
-workflows/            Prototipo del worker y manifiesto de Render
-tests/                Pruebas de política, investigación y componentes
-scripts/              Comprobación reproducible de proveedores
-docs/                 Estado técnico, evidencias y plan del hackathon
-```
+## Estado Comprobable
 
-## 🚀 Ejecutarlo localmente
+**Actualización documental: 12 de septiembre de 2026.** “Implementado” significa que existe código; “verificado” exige una prueba registrada. El detalle cronológico y sus límites viven en [`docs/IMPLEMENTATION_STATUS.md`](docs/IMPLEMENTATION_STATUS.md).
 
-Usa **Node.js 24** para reproducir la suite de pruebas del proyecto, npm y un proyecto Convex con acceso configurado.
+| Objetivo | Estado actual | Cierre pendiente para el video |
+|---|---|---|
+| **Convex · Multiplayer** | Verificado en dos sesiones: creación, unión, votos, investigación, resultado y siguiente caso. Frontend y backend publicados. | Grabar el recorrido final sobre la URL pública. |
+| **Linkup · Deep Research** | Dos consultas dependientes implementadas; ejecución real con ambas respuestas HTTP 200 registrada el 08/09. | Mostrar en pantalla una brecha que motive la segunda consulta y abrir una fuente. |
+| **Nebius · Applied AI** | Inferencia real registrada con tokens de `usage`, latencia neta y abstención por evidencia insuficiente. | Mostrar una corrida representativa. Costo y confianza siguen como no disponibles si no hay medición sustentada. |
+| **Render · Workflows** | SDK, despacho, lease, checkpoints, reintentos e idempotencia implementados y cubiertos por pruebas automatizadas. | El servicio real está bloqueado por configuración/facturación en Render; no afirmar recuperación en vivo hasta ejecutarla. |
+| **RevenueCat · Subscriptions** | Bypasses eliminados; catálogo, compra válida y fallos de Test Store comprobados. Validación server-side implementada. | Configurar la clave privada y verificar desbloqueo, restauración, dossier y expiración end-to-end. |
+| **NERDCONF · Fun Build** | Votación, tacómetro, confetti y audio procedural implementados; interacción multisesión comprobada. | Capturar una toma clara con reacción del jurado y audio habilitado por gesto. |
+
+Los fallbacks conservan la continuidad de la interfaz, pero están identificados y **no cuentan como evidencia real**. Render y RevenueCat sólo deben aparecer como integraciones cerradas en el video después de completar sus pruebas end-to-end.
+
+## Demo De Dos Minutos
+
+El video debe enseñar una sola historia y hacer visible una prueba por integración. Los detalles de tomas, narración y contingencias están en [`docs/obsidian/08_GUION_Y_CHECKLIST_DEL_VIDEO.md`](docs/obsidian/08_GUION_Y_CHECKLIST_DEL_VIDEO.md).
+
+| Tiempo | Imagen | Mensaje |
+|---|---|---|
+| **0:00–0:10** | Claim en pantalla y producto abierto. | “Las promesas se publican en segundos; comprobarlas no.” |
+| **0:10–0:28** | Host e invitado votan; ambos conteos cambian. | “El jurado decide primero, en tiempo real.” |
+| **0:28–0:52** | Fuente inicial, brecha y búsqueda de contraste. | “La segunda búsqueda responde a lo que faltó en la primera.” |
+| **0:52–1:12** | Monitor de workflow. | Mostrar fallo y recuperación sólo si el run real de Render fue verificado; de lo contrario, usar este tiempo para trazabilidad. |
+| **1:12–1:34** | Resultado, cita, tokens, latencia y limitación. | “Nebius evalúa; el backend exige citas literales y puede abstenerse.” |
+| **1:34–1:52** | Test Store y dossier. | Mostrar desbloqueo sólo si el servidor confirmó el entitlement; rotular “Sandbox, sin cobro real”. |
+| **1:52–2:00** | Siguiente caso y URL pública. | “Presenta la promesa. Convoca al jurado. Examina las pruebas.” |
+
+**Regla de grabación:** se pueden recortar esperas, pero deben rotularse. No se deben reemplazar ejecuciones pendientes por simulaciones presentadas como reales.
+
+## Ejecutarlo Localmente
+
+Requisitos: Node.js 24, npm y un proyecto Convex configurado.
 
 ```powershell
 npm install
 Copy-Item .env.example .env.local
 ```
 
-Completa `.env.local` con tus valores. Conserva el archivo fuera de Git.
+Configura las variables sin subir secretos a Git:
 
-| Variable | Uso |
+| Variable | Dónde se utiliza |
 |---|---|
-| `VITE_CONVEX_URL` | URL pública del backend para el frontend. |
-| `CONVEX_DEPLOYMENT` | Deployment seleccionado por Convex CLI; se configura al vincular el proyecto. |
-| `LINKUP_API_KEY` | Credencial privada para búsquedas en el backend. |
-| `NEBIUS_API_KEY` | Credencial privada de inferencia en el backend. |
-| `NEBIUS_MODEL` | Modelo configurable; valor de referencia en `.env.example`. |
-| `VITE_REVENUECAT_PUBLIC_KEY` | Clave pública del Web SDK para el entorno de prueba. |
+| `VITE_CONVEX_URL` | Frontend. |
+| `CONVEX_DEPLOYMENT` | Convex CLI. |
+| `LINKUP_API_KEY` | Backend Convex. |
+| `NEBIUS_API_KEY` | Backend Convex. |
+| `NEBIUS_MODEL` | Backend Convex; modelo opcional configurable. |
+| `VITE_REVENUECAT_PUBLIC_KEY` | RevenueCat Web SDK. |
+| `REVENUECAT_SECRET_KEY` | Convex; verificación privada de compras. |
+| `RENDER_API_KEY` | Convex; despacho privado del workflow. |
+| `RENDER_TASK_SLUG` | Convex; tarea real registrada en Render. |
+| `WORKFLOW_SHARED_SECRET` | Convex y Render; autentica callbacks del worker. |
 
-Configura también `LINKUP_API_KEY`, `NEBIUS_API_KEY` y, si corresponde, `NEBIUS_MODEL` en las variables del backend de Convex. Las variables locales no se transfieren automáticamente a Cloud. Sólo las claves públicas deben usar el prefijo `VITE_`.
-
-Inicia Convex y Vite en terminales separadas:
+Inicia backend y frontend en terminales separadas:
 
 ```powershell
 # Terminal 1
@@ -130,54 +138,43 @@ npx convex dev
 npm run dev
 ```
 
-### Comprobar y publicar
+### Verificar Y Publicar
 
 ```powershell
 npm test
 npm run build
+npm run build:workflow
 npx convex dev --once
-```
-
-El último comando valida y despliega el backend en el deployment configurado. Verifica el destino antes de ejecutarlo.
-
-Para compilar y publicar el frontend en Convex Static Hosting:
-
-```powershell
 npm run deploy
 ```
 
-**`npm run deploy` sólo compila y publica el frontend; no despliega las funciones del backend.** Coordina ambas publicaciones cuando haya cambios de contrato.
+`npm run deploy` compila y publica el frontend, pero no sustituye el despliegue de las funciones Convex. La prueba opcional `node scripts/verify-research.mjs --live` consume cuota real de Linkup y Nebius.
 
-La comprobación opcional `node scripts/verify-research.mjs --live` llama a Linkup y Nebius reales y consume cuota. Su alcance y reportes están en el registro técnico.
+## Mapa Del Repositorio
 
-## 🎬 Demo de dos minutos
+```text
+src/                     Interfaz React, contexto de idioma y audio procedural
+convex/                  Esquema, estado reactivo, investigación y entitlements
+convex/lib/              Políticas de evidencia, sesiones y ejecución
+workflows/               Worker de Render y manifiesto de infraestructura
+tests/                   Pruebas de integración, política y componentes
+scripts/                 Verificación reproducible de proveedores
+docs/                    Estado técnico y planes de entrega
+docs/obsidian/           Bóveda personal para comprender y presentar el proyecto
+```
 
-Guion propuesto: grabar los resultados observados, identificar esperas editadas y presentar las integraciones pendientes como tales. No hay un veredicto prefijado para el video.
+## Documentación
 
-| Tiempo | Qué mostrar |
-|---|---|
-| **0:00–0:15** | La promesa a investigar y la idea: «El público vota. Las fuentes ponen a prueba el hype». |
-| **0:15–0:35** | Host e invitado en paralelo: entrar, elegir apodo y votar; observar el medidor y escuchar el tribunal. |
-| **0:35–1:00** | Primera búsqueda y consulta de contraste: explicar qué hallazgo motivó la segunda fase y abrir una fuente. |
-| **1:00–1:25** | Resultado de Nebius, tokens y latencia disponibles; explicar una limitación concreta y reformular si falta evidencia. |
-| **1:25–1:40** | Recuperación de Render sólo si está conectada y comprobada; en caso contrario, explicar su estado pendiente y mostrar la continuidad de sala. |
-| **1:40–1:55** | Compra sandbox sólo si está verificada; mientras tanto, identificar Pro y la exportación como demostración. |
-| **1:55–2:00** | Invitación a probar el tribunal y URL pública. |
-
-El [plan de entrega](docs/HACKATHON_PLAN.md) conserva las indicaciones consultadas sobre publicación en X, etiqueta `@nerdconf_ar`, formulario y discrepancia de fechas.
-
-## 🧭 Próximos pasos
-
-- **Cerrar la demo:** prueba multisesión, evaluación con claims sustentados/contradichos/ambiguos y video del recorrido real.
-- **Completar integraciones:** Render Workflows con recuperación observable; RevenueCat con verificación de acceso y dossier sustentado en evidencias del caso.
-- **Explorar después del hackathon:** extensión para redes sociales, bot, auditoría de pitch decks y debate entre agentes. Son propuestas futuras.
-
-La memoria de continuidad está en [docs/PROJECT_MEMORY.md](docs/PROJECT_MEMORY.md); las reglas técnicas, en [AGENTS.md](AGENTS.md).
+- [`docs/IMPLEMENTATION_STATUS.md`](docs/IMPLEMENTATION_STATUS.md): registro técnico, pruebas ejecutadas y límites.
+- [`docs/PROJECT_MEMORY.md`](docs/PROJECT_MEMORY.md): memoria breve para retomar el trabajo.
+- [`docs/FINAL_PUSH_PLAN.md`](docs/FINAL_PUSH_PLAN.md): plan de cierre competitivo y bloqueos actuales.
+- [`docs/HACKATHON_PLAN.md`](docs/HACKATHON_PLAN.md): requisitos y planificación de entrega.
+- [`docs/obsidian/00_INDICE_TRUTH_TRIBUNAL.md`](docs/obsidian/00_INDICE_TRUTH_TRIBUNAL.md): índice de aprendizaje personal compatible con Obsidian.
 
 ---
 
 <div align="center">
 
-**⚖️ Presenta la promesa. Convoca al jurado. Examina las pruebas.**
+**Presenta la promesa. Convoca al jurado. Examina las pruebas.**
 
 </div>

@@ -92,6 +92,7 @@ Alcance: README orientado a producto, memoria persistente en `PROJECT_MEMORY.md`
 | 2026-09-09 | UX & Refinamiento de Producto | Eliminación de banners de patrocinadores y elevación de voz de producto | Sustitución de etiquetas meta/hackathon en Header, RoomLobby, LiveVoting, WorkflowProgress, VerdictReport y ProPaywall por terminología pericial de producto real. 55 pruebas aprobadas; desplegado en `https://brave-lemur-868.convex.site`. |
 | 2026-09-09 | Sala continua, Identidad y Sincronización de Audio | Persistencia de sala, apodos personalizables, calibración tacómetro y audio veredicto en red | Mutaciones `prepareNextClaim` y `startNextClaim` para encadenar casos en la misma sala; componente `InRoomLobby` con optimizador de prompts para el host y pulso reactivo para invitados; personalización y persistencia de nickname; sincronización reactiva de audio del veredicto vía WebSocket para todos los participantes; tacómetro de Hype-o-Meter con escala completa visible y calibrada (0% verde a 100% rojo); 55/55 pruebas aprobadas; backend Convex validado; desplegado en `https://brave-lemur-868.convex.site`. |
 | 2026-09-10 | Acreditación Invitado, Calibración Veredicto, Pro Depth & Tooltips | Modal de bienvenida inmediato para invitados, rol fijo Host, calibración de juicio pericial (CERTIFIED_SMOKE/PLAUSIBLE), búsqueda Pro (hasta 8 fuentes) y componente PericialTerm | Modal `GuestJoinModal` con sugerencias de apodos al unirse a sala; Host fijado a "Host"; calibración de directrices en Nebius para evaluar humo de startups sin caer en falsos 'insufficient_evidence'; parámetro `isPro` en backend habilitando hasta 8 fuentes cruzadas; popovers explicativos con `PericialTerm` en Hype Score, Inferencia, Latencia, Tokens, Checkpoints, Idempotencia y Due Diligence; 55/55 pruebas aprobadas; build limpio; funciones Convex validadas; desplegado en `https://brave-lemur-868.convex.site`. |
+| 2026-09-11 | Diferenciación Free vs Pro, Búsqueda en Español y Extracción Robusta | Búsqueda Linkup limpia en español, resiliencia JSON/citas Nebius (60s timeout), recorte visual de fuentes en Free (máx 2 por fase) con tarjetas bloqueadas de invitación Pro, Matriz de Riesgo dinámica y exportador PDF vectorial/imprimible en ProPaywallModal | Consultas Linkup sin contaminación de metainstrucciones; normalización de citas literales en `research.ts` y extracción de JSON en `auditPolicy.ts`; 67/67 pruebas aprobadas (`npm test`); build de frontend (`dist/`) y workflow (`dist-workflows/`); funciones desplegadas a Convex Cloud (`brave-lemur-868.convex.cloud`) y frontend actualizado en `https://brave-lemur-868.convex.site`. |
 
 ## Límites y caso observado
 
@@ -143,3 +144,82 @@ Evidencia y despliegue (Node 24, Windows, Convex Cloud `brave-lemur-868`):
 - `npx @convex-dev/static-hosting upload`: frontend publicado en `https://brave-lemur-868.convex.site` (deployment ID `404c9d7d-361b-4fc6-9b85-e37be84cbc1c`, assets `index-DlY82TY8.js` y `index-BbDrZO6X.css`).
 - Verificación live: GET HTTP 200 en `https://brave-lemur-868.convex.site` sirviendo los assets recién compilados.
 - Pendiente para ejecución en vivo de Render / RevenueCat: configurar variables de entorno privadas en los dashboards de los servicios (`RENDER_API_KEY`, `RENDER_TASK_SLUG`, `WORKFLOW_SHARED_SECRET`, `REVENUECAT_SECRET_KEY`) y conectar el repositorio GitHub `arenasantiago/burningtoken` en Render.
+
+## Configuración y prueba de Test Store — 2026-09-11 (retoma posterior a Gemini)
+
+Se retomó el commit `2a0967b`, con árbol limpio. Se conservaron los cambios y el despliegue registrados por Gemini. Esta comprobación diferencia configuración, compra en proveedor y autorización de acceso.
+
+- RevenueCat, proyecto `a2b80ff0`: producto Test Store `pro_auditor_monthly` (`prode9a2e9e937`) asociado al entitlement `pro_auditor_access` y al paquete mensual de la offering predeterminada `default`. Ambas asociaciones comprobadas en el dashboard después de guardar.
+- Chrome, URL pública `brave-lemur-868.convex.site`: checkout real del SDK para el producto esperado; acciones Test Store Cancel y Test failed purchase conservan Free. Test valid purchase produjo una transacción **New Sub** visible al activar Sandbox en el dashboard del producto (cliente enmascarado `tt_2…b628`). No hubo cobro real.
+- El servidor rechazó la sincronización por ausencia de `REVENUECAT_SECRET_KEY`. La compra en el proveedor está comprobada; el desbloqueo verificado por servidor, restauración, descarga y expiración end-to-end siguen pendientes. No se concedió acceso por fallback.
+- Render reconoce ahora el repositorio público `arenasantiago/burningtoken`. Formulario preparado: `truth-tribunal-auditor`, Node, main, Virginia, build `npm ci && npm run build:workflow`, start `node dist-workflows/auditor_workflow.cjs`.
+- Intentar Deploy Workflow abrió **Add Card**: Render exige método de pago (autorización temporal anunciada de USD 1). No se completó ese paso ni se creó una ejecución real.
+- Con autorización explícita del usuario, se generó `WORKFLOW_SHARED_SECRET`, se guardó en Convex y se dejó en el formulario de Render. No se imprimió ni se guardó en Git. Render aún no ha persistido el servicio; conservar el formulario hasta completar facturación.
+- Clave privada RevenueCat: formulario V1 preparado, pero no generada; confirmación de acceso pendiente. Convex todavía necesita `REVENUECAT_SECRET_KEY`, `RENDER_API_KEY` y el `RENDER_TASK_SLUG` real después del despliegue.
+
+Mejoras de código de esta retoma: mensajes de cancelación/fallo de compra en español, errores esperados de suscripción mediante ConvexError y revalidación de suscripción antes de cada descarga. 66/66 pruebas automatizadas aprobadas; no sustituyen la prueba del proveedor. Persisten las verificaciones de Render con fallo/reintento real y de RevenueCat con servidor activo.
+
+## Diferenciación Pro, Matriz de Riesgo y Exportación PDF Editorial — 2026-09-11
+
+Alcance:
+1. **Diferenciación Free vs. Pro en Evidencias:**
+   - En versión gratuita: conservación de la rigurosidad pericial y fuentes primarias completas sin degradación de juicio. Incorporación de un teaser informativo y no intrusivo en el tablero de evidencias sobre el contraste global en otros idiomas.
+   - En versión Pro: consulta de contraste enriquecida con literatura científica y benchmarks internacionales en inglés (`international scientific papers benchmarks limitations`), con badge identificador `🌐 Global · Linkup`.
+2. **Matriz Pericial de Riesgo en Dossier:**
+   - La query `dossier` en `convex/entitlements.ts` calcula dinámicamente una matriz de riesgo multidimensional de 4 factores:
+     - Riesgo Reputacional / Humo (según Hype Score y divergencia con literatura).
+     - Riesgo Técnico / Factibilidad (según dictamen y reproducibilidad empírica).
+     - Calidad de Evidencia (según proporción de fuentes primarias vs notas de prensa e incertidumbre).
+     - Directriz de Acción (recomendación formal para comités de inversión VC o proyectos de investigación universitaria).
+3. **Generación de Reporte PDF Editorial & Markdown Enriquecido:**
+   - Sustitución de la descarga en texto plano (`.txt`) por un generador de informe pericial con diseño editorial profesional (`printPdfDossier`), membrete formal de Truth Tribunal, ficha del caso (`caseCode`), tabla estilizada de matriz de riesgo, trazabilidad de citas literales evaluadas y sellos de certificación.
+   - Apertura optimizada para diálogo de impresión nativa (`window.print()`) para guardar en PDF vectorial de alta calidad.
+   - Opción complementaria de descarga en Markdown estructurado (`.md`) para importación en herramientas académicas (Obsidian, Notion, LaTeX).
+4. **Resumen de Beneficios Premium en Modal:**
+   - Presentación destacada de los 3 pilares de valor antes de la compra en Test Store (Fuentes Globales, Matriz de Riesgo y Dossier PDF).
+
+Evidencia y despliegue:
+- `npm test`: 67/67 pruebas aprobadas (incorporada prueba unitaria de la matriz de riesgo y datos oficiales del dossier).
+- `npm run build`: bundle TypeScript y Vite generado exitosamente.
+- `npm run build:workflow`: bundle CJS del worker de Render compilado.
+- `npx convex dev --once`: backend Convex sincronizado en `brave-lemur-868`.
+- `npx @convex-dev/static-hosting upload`: frontend publicado en `https://brave-lemur-868.convex.site`.
+
+## Soporte Bilingüe Español / Inglés y Despliegue en Producción — 2026-09-11
+
+Alcance:
+1. **Conmutador Reactivo de Idioma (`[ 🇪🇸 ES | 🇬🇧 EN ]`):**
+   - Implementado botón toggle en la barra de navegación (`src/components/Header.tsx`) para alternar instantáneamente entre Español e Inglés sin recargar la página.
+   - Estado global gestionado mediante `LanguageContext` y `LanguageProvider` (`src/context/LanguageContext.tsx`) con persistencia local en `localStorage` (`"truth_tribunal_lang"`).
+   - Atributo HTML del documento sincronizado dinámicamente (`document.documentElement.lang = "es" | "en"`).
+2. **Diccionario Pericial Completo (`src/i18n/translations.ts`):**
+   - Traducción íntegra de todos los textos, títulos, descripciones, tooltips, placeholders y mensajes de estado para:
+     - Header y navegación.
+     - Lobby inicial y salas de espera (`RoomLobby.tsx`, `InRoomLobby.tsx`).
+     - Votación multijugador y tacómetro Hype-o-Meter 3000 (`LiveVoting.tsx`).
+     - Orquestador y monitor de background workers (`WorkflowProgress.tsx`).
+     - Tablero de evidencias y deep research (`EvidenceBoard.tsx`).
+     - Veredicto pericial, métricas Nebius y asistente de prompts (`VerdictReport.tsx`).
+     - Paywall y reporte Pro de Due Diligence (`ProPaywallModal.tsx`).
+     - Modal de unión de invitados y jurados (`GuestJoinModal.tsx`).
+     - Glosario de términos periciales técnicos (`PericialTerm.tsx`).
+3. **Invariantes y Lógica Preservada al 100%:**
+   - La lógica reactiva de Convex, las mutaciones atómicas, el sintetizador Web Audio procedimental, el flujo RevenueCat Test Store y los checkpoints de Render se mantienen intactos sin alterar contratos de datos ni WebSocket.
+4. **Verificación Automatizada y Despliegue:**
+   - `npm test`: 67/67 pruebas aprobadas.
+   - `npm run build`: compilación TypeScript y empaquetado Vite exitosos (cero errores TS).
+   - `npm run build:workflow`: worker CJS compilado exitosamente.
+   - `npx convex dev --once`: backend validado contra el entorno de despliegue `brave-lemur-868`.
+   - `npx @convex-dev/static-hosting upload`: frontend desplegado en producción en `https://brave-lemur-868.convex.site`.
+
+## Reorganización de README y bóveda personal — 2026-09-12
+
+Alcance: reorganización exclusivamente documental del README público y de `docs/obsidian/`; no se modificó código de aplicación ni se ejecutaron proveedores o despliegues.
+
+- `README.md`: portada de producto, arquitectura compacta, estado actualizado de los seis objetivos, comandos y guion de dos minutos con contingencias honestas para Render y RevenueCat.
+- `docs/obsidian/`: nueve notas navegables con frontmatter, enlaces internos portables, guía para explicar el proyecto y checklist operativo de grabación. Se retiraron enlaces `file:///`, cifras de ejemplo presentadas como métricas y afirmaciones de cumplimiento total no acreditadas.
+- `npm test`: 67/67 pruebas aprobadas en Windows y Node 24.
+- `npm run build`: aprobado; persiste la advertencia conocida de chunk mayor a 500 kB (`1.266,13 kB` antes de gzip).
+- `npm run build:workflow`: aprobado; bundle CJS generado correctamente.
+- La búsqueda en `docs/obsidian/` no encontró enlaces absolutos locales ni las afirmaciones numéricas antiguas revisadas.
+- `git diff --check`: los archivos documentales de este incremento no introducen errores; el chequeo global todavía señala una línea en blanco final en `tests/integrations.test.mjs`, archivo con cambios ajenos a esta reorganización que no fue modificado.

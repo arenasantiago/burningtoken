@@ -1,110 +1,127 @@
-# ⚡ 04. El Deep Search y el Botón de Falla Controlada (Reto Render)
-#render #workflows #idempotencia #resiliencia #deep-research
-
-Regresar al [[00_INDICE_TRUTH_TRIBUNAL|Índice Maestro]].
-
+---
+tags:
+  - deep-research
+  - render
+  - workflows
+  - idempotencia
+updated: 2026-09-12
 ---
 
-## 🧭 ¿Qué es ese Botón durante el Deep Search?
+# 04 · Deep Search Y Falla Controlada
 
-Cuando el Host pulsa *"Desplegar Auditoría Autónoma"*, la pantalla entra en la fase de investigación profunda. En la parte inferior del monitor de progreso aparece una tarjeta con el botón:
+Volver a [[00_INDICE_TRUTH_TRIBUNAL|Índice]].
 
+## Dos Problemas Diferentes
+
+- **Deep Search:** encontrar y contrastar evidencia relevante.
+- **Workflow resiliente:** terminar ese trabajo aunque el proceso falle o el navegador se cierre.
+
+Linkup resuelve búsqueda. Convex guarda la verdad. Render debe ejecutar y reintentar el trabajo desacoplado.
+
+## Investigación En Dos Fases
+
+```mermaid
+flowchart LR
+    C[Claim] --> Q1[Consulta inicial]
+    Q1 --> E1[Fuentes iniciales]
+    E1 --> B[Detectar brechas]
+    B --> Q2[Consulta de contraste]
+    Q2 --> E2[Nuevas fuentes]
+    E1 --> N[Nebius]
+    E2 --> N
 ```
-[ 🔄 Inducir Falla Controlada ]
-```
+
+La segunda consulta debe depender de la primera. `buildContrastPlan` analiza cobertura, incluye términos faltantes y excluye dominios ya visitados. Esto es más defendible que ejecutar dos búsquedas genéricas idénticas.
+
+## Por Qué Existe La Falla Controlada
+
+Un proceso puede caer después de pagar una búsqueda o antes de guardar su resultado. Reintentar todo desde cero puede duplicar filas, consumir cuota y terminar con dos veredictos competidores.
+
+El botón solicita una falla intencional para demostrar que:
+
+1. El worker falla realmente.
+2. Render inicia un reintento.
+3. El nuevo intento adquiere un lease válido.
+4. Lee checkpoints persistidos.
+5. Continúa desde la etapa correcta.
+6. Convex deduplica efectos repetidos.
+7. Sólo una ejecución puede cerrar el caso.
+
+## Conceptos Que Debo Poder Explicar
+
+### Checkpoint
+
+Marca persistida de una etapa terminada. Sobrevive al proceso porque vive en Convex, no en memoria del worker.
+
+### Idempotencia
+
+Repetir una operación produce el mismo efecto final. En este proyecto implica reutilizar la investigación y evitar evidencia duplicada por investigación/URL normalizada.
+
+### Lease
+
+Permiso temporal para que un intento modifique la investigación. Evita que dos workers activos escriban progreso simultáneamente.
+
+### Callback Obsoleto
+
+Respuesta de un intento anterior cuyo lease ya no es válido. El backend debe rechazarla aunque llegue tarde.
+
+### Falla Consumible Una Vez
+
+La solicitud se consume al lanzar la excepción. Así el reintento siguiente puede continuar en vez de fallar para siempre.
+
+## Flujo Objetivo
 
 ```mermaid
 sequenceDiagram
-    autonumber
-    actor Juez as Jurado / Usuario
-    participant UI as WorkflowProgress.tsx
-    participant Convex as Convex Database
-    participant Worker as Render Background Worker
-    participant Linkup as Linkup API
-
-    Worker->>Linkup: Paso 1: Búsqueda Inicial
-    Linkup-->>Worker: Hallazgos recibidos
-    Worker->>Convex: Guarda evidencias + Checkpoint 'initial_search_done'
-    
-    Note over Juez,UI: El usuario hace clic en "Inducir Falla Controlada"
-    Juez->>UI: Clic en [Inducir Falla Controlada]
-    UI->>Convex: triggerSimulatedFailure()
-    Convex-->>Worker: Simula caída súbita del nodo / worker
-    
-    Note over Worker: Auto-recuperación e Idempotencia
-    Worker->>Convex: Lee último checkpoint ('initial_search_done')
-    Worker->>Worker: Reanuda desde Paso 2 (NO repite Paso 1)
-    Worker->>Convex: Inserta evidencias de contraste con Deduplicación (0 duplicados)
-    UI-->>Juez: Muestra badge "Recuperado Exitosamente (Reintento #1)"
+    actor Host
+    participant UI
+    participant C as Convex
+    participant R as Render Workflow
+    participant L as Linkup
+    Host->>UI: Iniciar auditoría
+    UI->>C: Solicitar investigación
+    C->>R: Despachar task con run ID
+    R->>C: Adquirir lease
+    R->>L: Búsqueda inicial
+    R->>C: Evidencia + checkpoint
+    Host->>C: Solicitar falla controlada
+    R->>C: Consumir solicitud
+    R--xR: Lanzar error real
+    R->>R: Reintento gestionado
+    R->>C: Nuevo lease + leer checkpoint
+    R->>L: Continuar desde contraste
+    R->>C: Resultado final único
+    C-->>UI: Actualización reactiva
 ```
 
----
+## Estado Actual
 
-## 🎯 ¿Por qué existe este botón y cuál es su objetivo?
+**Implementado y probado con automatización:** SDK de Workflows, despacho, secretos compartidos, leases, checkpoints, reintentos, deduplicación y rechazo de callbacks desfasados.
 
-Este botón fue creado específicamente para **cumplir con la demostración en vivo del Reto Render Workflows ($900 en créditos)**:
+**No verificado todavía:** una ejecución dentro de Render con run ID y logs reales. El alta del servicio quedó bloqueada por el paso Add Card. El manifiesto `workflows/render.yaml` por sí solo no demuestra Render Workflows.
 
-> **El problema en sistemas distribuidos:**  
-> Cuando un worker en segundo plano ejecuta tareas pesadas (consultas web, scraping, inferencia con LLMs), un servidor puede reiniciarse por falta de memoria (OOM), pérdida de red o rotación de instancias.  
-> Si el sistema no está bien diseñado:
-> 1. El proceso se rompe y deja la pantalla colgada para siempre.
-> 2. O el sistema reintenta desde cero, duplicando evidencias en la base de datos y gastando el doble de dinero en llamadas a las APIs.
+## Evidencia Necesaria Para Cerrar Render
 
-### Lo que demuestra este botón ante los jueces:
-1. **Tolerancia a fallos:** El sistema no se congela; detecta la caída.
-2. **Checkpoints persistentes:** Convex almacena qué pasos ya terminaron (`completedCheckpoints: ["linkup_initial_search_done"]`).
-3. **Idempotencia estricta:** Al reanudar, la mutación `add` en [`convex/evidence.ts`](file:///c:/Users/Santiago%20Arenas/Desktop/Burning%20dev/convex/evidence.ts) comprueba si la URL ya existe:
-   ```typescript
-   // Deduplicación en base de datos
-   const existing = await ctx.db
-     .query("evidence")
-     .withIndex("by_investigation", (q) => q.eq("investigationId", args.investigationId))
-     .filter((q) => q.eq(q.field("url"), args.url))
-     .first();
-   if (existing) return existing._id; // ¡Cero duplicados!
-   ```
-4. **Cero desperdicio de cuota:** No vuelve a llamar a la Fase 1 de Linkup; pasa directamente a la Fase 2 o a Nebius.
+- ID del run real.
+- Log del primer intento fallando.
+- Log del reintento.
+- Mismo caso/investigación en ambos intentos.
+- Checkpoint inicial conservado.
+- Conteo de evidencias sin duplicados.
+- Un único resultado final.
+- La UI continúa aunque se cierre el navegador del host.
 
----
+## Cómo Grabarlo
 
-## 🎬 Cómo usar este botón en el Video Demo de 2 Minutos
+Sólo después de completar la ejecución real:
 
-En el guion del video para el jurado (entre el segundo `0:50` y el `1:15`):
+1. Iniciar auditoría.
+2. Esperar a que exista un checkpoint persistido.
+3. Pulsar “Inducir falla controlada”.
+4. Mostrar brevemente error y número de reintento.
+5. Mostrar recuperación y avance.
+6. Añadir un overlay con run ID y “0 duplicados”.
 
-1. Pulsa *"Desplegar Auditoría Autónoma"*.
-2. Cuando veas la barra de progreso avanzando por *"Búsqueda Inicial"* (40-65%), haz clic en **`[Inducir Falla Controlada]`**.
-3. Escucharás una alerta sonora de sirena.
-4. Señala a la cámara cómo:
-   * El contador de reintentos sube a `Reintentos Idempotentes: 1`.
-   * El botón cambia a color ámbar: `Recuperado Exitosamente (Reintento #1)`.
-   * Aparece el badge verde: `✓ Checkpoint restaurado · Cero duplicados en BD`.
-   * La auditoría continúa su curso con normalidad hasta emitir el veredicto final.
+Si Render sigue pendiente, no pulsar el botón como si fuera evidencia. Dedicar ese segmento a Linkup/Nebius y declarar la integración de workflow como pendiente.
 
----
-
-## 🛡️ Estructura del Manifiesto de Render (`workflows/render.yaml`)
-
-Para la arquitectura en la nube de Render, el proyecto cuenta con el manifiesto declarativo:
-```yaml
-services:
-  - type: worker
-    name: truth-tribunal-auditor-worker
-    runtime: node
-    plan: starter
-    buildCommand: npm install
-    startCommand: node workflows/auditor_workflow.ts
-    envVars:
-      - key: CONVEX_URL
-        fromService:
-          type: web
-          name: truth-tribunal-web
-          property: host
-```
-
-Esto demuestra que los procesos intensivos de scraping e investigación están desacoplados del renderizado web de los usuarios.
-
----
-
-> [!TIP]
-> **Siguiente Lectura Recomendada:**  
-> Aprende los secretos de la inferencia con LLM en [[05_NEBIUS_TOKEN_FACTORY_EN_DETALLE|05. Inferencia con Nebius Token Factory]].
+Siguiente: [[05_NEBIUS_TOKEN_FACTORY_EN_DETALLE|Nebius Token Factory]].

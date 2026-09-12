@@ -1,76 +1,74 @@
-# 🎨 06. Hoja de Ruta para la Mejora Estética Incremental
-#diseño #ui #ux #tailwind #estetica #cyber-tribunal
-
-Regresar al [[00_INDICE_TRUTH_TRIBUNAL|Índice Maestro]].
-
+---
+tags:
+  - diseño
+  - ui
+  - ux
+  - roadmap
+updated: 2026-09-12
 ---
 
-## 🧭 Visión Estética: "Cyber-Tribunal Forense"
+# 06 · Diseño Y Evolución Visual
 
-Para que el proyecto destaque visualmente ante los jueces de NERDCONF y los sponsors, la interfaz debe proyectar una atmósfera de **Tribunal de Alta Tecnología**:
-* **Sensación:** Un estrado judicial del año 2040 donde se juzga el fraude tecnológico con rigor implacable.
-* **Paleta de Colores Principal:**
-  * Fondo: Slate Profundo (`#0B0F17` / `#05070B`) con texturas sutiles de cuadrícula pericial.
-  * Púrpura Judicial (`#A855F7` / `#7E22CE`): Autoridad del tribunal y llamadas a la acción.
-  * Rojo Humo / Smoke (`#EF4444` / `#DC2626`): Alerta de fraude, hype desmedido y sirenas.
-  * Verde Legítimo / Legit (`#10B981` / `#059669`): Verificación exitosa y benchmarks comprobados.
-  * Dorado Pro (`#F59E0B` / `#D97706`): Entitlements y dossiers confidenciales para fondos VC.
-* **Tipografía:**
-  * Títulos: Sans-serif geométrica de alto impacto (`Inter` / `Space Grotesk`).
-  * Datos y métricas: Fuente monoespaciada (`JetBrains Mono` / `Fira Code`) para reportes forenses.
+Volver a [[00_INDICE_TRUTH_TRIBUNAL|Índice]].
 
-```mermaid
-graph TD
-    Paso1["Paso 1: Header & Status Bar\n(Brillo pericial, pulsos de conexión en vivo)"]
-    Paso2["Paso 2: RoomLobby & Prompt Architect\n(Tarjetas glassmorphism, asistente visual)"]
-    Paso3["Paso 3: LiveVoting & Hype-o-Meter\n(Tacómetro animado con gradiente de humo)"]
-    Paso4["Paso 4: EvidenceBoard & Radar Forense\n(Efecto terminal hacker y filtros por fase)"]
-    Paso5["Paso 5: VerdictReport & Sello Lacrado\n(Impacto visual con martillo y matriz de riesgo)"]
+## Lenguaje Visual
 
-    Paso1 --> Paso2 --> Paso3 --> Paso4 --> Paso5
-```
+La interfaz usa una estética de tribunal tecnológico: fondo oscuro, acentos púrpura, rojo para humo, verde para sustento y dorado para Pro. La meta no es decorar cada pantalla, sino hacer legibles tres tensiones:
 
----
+- intuición humana frente a evidencia;
+- fuente real frente a fallback;
+- conclusión frente a incertidumbre.
 
-## 📐 Plan de Implementación Incremental
+## Decisiones Ya Materializadas
 
-### Incremento Estético 1: Header y Barra de Navegación Global (COMPLETADO Y VERIFICADO)
-* [x] Indicador pulsante *"EN VIVO · CONVEX"* con punto verde esmeralda y badge reactivo.
-* [x] Efecto de *Glassmorphism* con desenfoque de fondo (`backdrop-blur-xl bg-slate-950/80 border-b border-purple-500/20`).
-* [x] Botón de martillo con microinteracción de martillazo acústico procedural (`playGavel`) y tooltip explicativo.
+- Header responsive, estado de conexión y cambio ES/EN.
+- Lobby con ejemplos, código de sala y asistente de formulación.
+- Apodos y modal de entrada para invitados.
+- Hype-o-Meter semicircular, feed reactivo y botones táctiles.
+- Audio procedural con sonidos diferentes para voto, alerta y resultado.
+- Evidencias separadas por fase, procedencia e incertidumbre.
+- Glosario contextual mediante `PericialTerm`.
+- Reporte final con métricas y caso límite.
+- Diferenciación Free/Pro, matriz de riesgo y salida PDF/Markdown.
+- Diseño responsive comprobado en viewports móviles pequeños.
 
-### Incremento Estético 2: Sala de Espera y Asistente de Prompts (COMPLETADO Y VERIFICADO)
-* [x] Cuadrícula de fondo `.bg-cyber-grid` con resplandor ambiental radial púrpura.
-* [x] Formulario de creación de claim con estética de tarjeta cyber-tribunal y botones de presets con un clic.
-* [x] Tarjetas de sugerencias del Asistente de Prompts con chips de dificultad/verificabilidad (`98% Verificable`), medidores de falsabilidad y botón de adopción instantánea.
+## Principios Para El Pulido Final
 
-### Incremento Estético 3: Votación Multijugador, Hype-o-Meter y Web Audio (COMPLETADO Y VERIFICADO)
-* [x] **Tacómetro SVG Semicircular Dinámico (Hype-o-Meter 3000)**: aguja mecánica de -90° a +90° con animación bezier suave, arco de gradiente esmeralda-cielo-ámbar-carmesí, marcas de escala (0%, 50%, 100%) y hub LED reactivo.
-* [x] **Badges de Veredicto Dinámico**: 4 estados calibrados con brillo neon (`Bajo Humo`, `Hype Leve`, `Hype Severo`, `¡Humo Crítico!`).
-* [x] **Tarjetas de votación táctiles**: Botón SMOKE (fuego con resplandor carmesí) y Botón LEGIT (escudo con resplandor esmeralda), con badge "Tu Voto Registrado".
-* [x] **Feed de Jurados en Vivo (Ticker)**: Lista reactiva con los últimos votos emitidos en tiempo real vía WebSocket de Convex.
-* [x] **Sintetizador Web Audio API Procedural (NERDCONF Fun Build)**:
-  * `playGavel()`: Impacto de martillo de doble capa (chasquido transitorio agudo + resonancia subsónica de estrado de roble).
-  * `playSmokeSiren()`: Sirena bifásica modulada de bullshit alert.
-  * `playVoteLegit()`: Campana armónica cristalina afirmativa (D5 -> A5).
-  * `playVoteSmoke()`: Buzzer disonante descendente (220Hz -> 75Hz).
-  * `playHypeAlert()`: Arpegio de 4 pulsos cuadrados de advertencia inmediata.
-  * Barra de prueba acústica interactiva integrada en la vista de votación para el jurado.
+1. **La evidencia domina la decoración.** URL, cita, fase y procedencia deben ser legibles en la grabación.
+2. **Un color tiene significado estable.** Rojo no puede indicar indistintamente error, humo y acción primaria.
+3. **El movimiento explica estado.** Evitar animaciones que compitan con el cambio reactivo importante.
+4. **Dos ventanas deben seguir siendo legibles.** Para demostrar multiplayer, ampliar las zonas que cambian.
+5. **El audio es breve.** Un efecto confirma una acción; no debe tapar la voz.
+6. **Movimiento reducido se respeta.** La experiencia no depende de animaciones para comunicar información.
 
-### Incremento Estético 4: Monitor de Render y Tablero de Evidencias (SIGUIENTE PASO)
-* [ ] Barra de progreso del worker con efecto de barrido láser animado.
-* [ ] Botón *"Inducir Falla Controlada"* con estilo de switch industrial de emergencia (rojo advertencia con textura rayada amarilla).
-* [ ] Tarjetas de evidencias de Linkup con borde iluminado según certeza (Verde para `LOW uncertainty`, Ámbar para `MEDIUM`, Rojo para `HIGH`).
-* [ ] Citas textuales destacadas con tipografía monoespaciada e icono de verificación de autenticidad.
+## Mejoras Posteriores Al Video
 
-### Incremento Estético 5: Veredicto Supremo y Dossier VC
-* [ ] Pantalla de veredicto con efecto de "Sello Lacrado" o estampa de tribunal (*"CERTIFIED SMOKE"* con rotación pericial de -3 grados).
-* [ ] Sincronización visual con el audio: temblor sutil de pantalla (*screen shake*) al caer el martillazo judicial.
-* [ ] Dossier de RevenueCat con estética de informe clasificado (*"TOP SECRET / VC DUE DILIGENCE"*), con marcas de agua y matriz gráfica de riesgo.
+- Dividir el bundle principal, actualmente grande, sin arriesgar la demo.
+- Revisar navegación completa con lector de pantalla.
+- Ensayar dispositivos físicos y conexiones lentas.
+- Crear filtros de evidencia si el volumen real los vuelve necesarios.
+- Añadir comparación visual entre voto humano y resultado pericial.
+- Sustituir cualquier texto promocional que parezca una certificación absoluta.
 
----
+## Fuera Del Alcance Inmediato
 
-> [!TIP]
-> **Estado de Despliegue en Vivo:**  
-> Todos los cambios han sido compilados con éxito (`npm run build`) y desplegados a producción en **`https://brave-lemur-868.convex.site`** con las 55 pruebas automatizadas pasando al 100%.
+- Extensión de navegador para X/LinkedIn.
+- Bot público para auditar menciones.
+- Carga de pitch decks.
+- Staking o quema de tokens.
+- Debate multiagente Fiscal/Defensor.
 
+Estas ideas pertenecen al roadmap; no deben aparecer en el video como capacidades presentes.
+
+## Checklist Visual Antes De Grabar
+
+- Claim corto y legible.
+- Zoom del navegador consistente.
+- Sin barras, pestañas ni datos sensibles innecesarios.
+- Host e invitado identificables.
+- Fuente y cita visibles durante al menos dos segundos.
+- Métricas sin números ficticios.
+- Etiquetas “Sandbox” y “espera recortada” cuando correspondan.
+- Audio probado después de un gesto de usuario.
+
+Siguiente: [[07_COMO_EXPLICAR_EL_PROYECTO|Cómo explicar el proyecto]].
