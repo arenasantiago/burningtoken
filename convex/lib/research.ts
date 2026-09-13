@@ -87,7 +87,7 @@ export function validateEvidenceAssessments(value: unknown, sources: Array<{ evi
     if (!item || typeof item.evidenceId !== "string" || seen.has(item.evidenceId) || !known.has(item.evidenceId)) continue;
     if (!["supports", "contradicts", "unassessed"].includes(String(item.assessment)) || !["LOW", "MEDIUM", "HIGH"].includes(String(item.uncertaintyLevel))) continue;
     if (typeof item.reason !== "string" || !item.reason.trim()) continue;
-    const quote = typeof item.quote === "string" ? item.quote.trim() : "";
+    const quote = typeof item.quote === "string" ? item.quote.trim().replace(/^["'“”«»]+|["'“”«»]+$/g, "").trim() : "";
     // A relation must point to a substantive, literal passage from that source.
     if (item.assessment !== "unassessed" && (normalizedText(quote).length < 20 || !normalizedText(known.get(item.evidenceId)!).includes(normalizedText(quote)))) continue;
     seen.add(item.evidenceId);

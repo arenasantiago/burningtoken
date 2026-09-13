@@ -1,10 +1,14 @@
 // Web Audio API Sound Synthesizer for "Fun Build · NERDCONF"
 // Produces procedural high-impact courtroom sound effects without external audio assets.
 
+let sharedAudioContext: AudioContext | null = null;
+
 export function useAudioTribunal() {
   const getAudioContext = () => {
     const AudioCtx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
-    const ctx = new AudioCtx();
+    const ctx = sharedAudioContext && sharedAudioContext.state !== "closed"
+      ? sharedAudioContext
+      : (sharedAudioContext = new AudioCtx());
     if (ctx.state === "suspended") {
       ctx.resume().catch(() => {});
     }

@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { useAudioTribunal } from "../hooks/useAudioTribunal";
 import { PericialTerm } from "./PericialTerm";
+import { useLanguage } from "../context/LanguageContext";
 
 interface LiveVotingProps {
   claimContent: string;
@@ -46,6 +47,8 @@ export const LiveVoting: React.FC<LiveVotingProps> = ({
   isStartingAudit = false,
 }) => {
   const audio = useAudioTribunal();
+  const { language, t } = useLanguage();
+  const isEs = language === "es";
 
   // Sanitización de porcentajes
   const smokePct = useMemo(() => {
@@ -67,8 +70,8 @@ export const LiveVoting: React.FC<LiveVotingProps> = ({
   const hypeLevel = useMemo(() => {
     if (counts.total === 0) {
       return {
-        label: "SALA EN ESPERA DE VOTACIÓN",
-        sublabel: "Emite el primer veredicto para calibrar el tacómetro",
+        label: isEs ? "SALA EN ESPERA DE VOTACIÓN" : "ROOM AWAITING VOTES",
+        sublabel: isEs ? "Emite el primer veredicto para calibrar el tacómetro" : "Cast the first vote to calibrate the tachometer",
         colorClass: "text-slate-400 border-slate-700 bg-slate-800/40",
         glowClass: "",
         badgeBg: "bg-slate-700/50",
@@ -76,8 +79,8 @@ export const LiveVoting: React.FC<LiveVotingProps> = ({
     }
     if (smokePct <= 25) {
       return {
-        label: "BAJO HUMO · ALTA CONFIANZA TÉCNICA",
-        sublabel: "La audiencia considera factible y sustentada esta propuesta",
+        label: isEs ? "BAJO HUMO · ALTA CONFIANZA TÉCNICA" : "LOW SMOKE · HIGH TECHNICAL TRUST",
+        sublabel: isEs ? "La audiencia considera factible y sustentada esta propuesta" : "The jury considers this claim feasible and well grounded",
         colorClass: "text-emerald-400 border-emerald-500/40 bg-emerald-950/30",
         glowClass: "shadow-[0_0_25px_rgba(16,185,129,0.25)]",
         badgeBg: "bg-emerald-500/20 text-emerald-300",
@@ -85,8 +88,8 @@ export const LiveVoting: React.FC<LiveVotingProps> = ({
     }
     if (smokePct <= 50) {
       return {
-        label: "HYPE LEVE · FUNDAMENTOS PROMISORIOS",
-        sublabel: "Balance positivo con reservas sobre métricas o plazos",
+        label: isEs ? "HYPE LEVE · FUNDAMENTOS PROMISORIOS" : "MILD HYPE · PROMISING FOUNDATIONS",
+        sublabel: isEs ? "Balance positivo con reservas sobre métricas o plazos" : "Positive balance with reservations on metrics or timelines",
         colorClass: "text-sky-400 border-sky-500/40 bg-sky-950/30",
         glowClass: "shadow-[0_0_25px_rgba(14,165,233,0.25)]",
         badgeBg: "bg-sky-500/20 text-sky-300",
@@ -94,21 +97,21 @@ export const LiveVoting: React.FC<LiveVotingProps> = ({
     }
     if (smokePct <= 75) {
       return {
-        label: "HYPE SEVERO · MARKETING AGRESIVO",
-        sublabel: "La comunidad detecta exageraciones e inconsistencias técnicas",
+        label: isEs ? "HYPE SEVERO · MARKETING AGRESIVO" : "HEAVY HYPE · AGGRESSIVE MARKETING",
+        sublabel: isEs ? "La comunidad detecta exageraciones e inconsistencias técnicas" : "The community detects exaggerations and technical inconsistencies",
         colorClass: "text-amber-400 border-amber-500/40 bg-amber-950/30",
         glowClass: "shadow-[0_0_25px_rgba(245,158,11,0.25)]",
         badgeBg: "bg-amber-500/20 text-amber-300",
       };
     }
     return {
-      label: "¡HUMO CRÍTICO! BULLSHIT DETECTADO",
-      sublabel: "Alerta máxima del tribunal: promesa inverosímil o vaporware",
+      label: isEs ? "¡HUMO CRÍTICO! BULLSHIT DETECTADO" : "CRITICAL HYPE! BULLSHIT DETECTED",
+      sublabel: isEs ? "Alerta máxima del tribunal: promesa inverosímil o vaporware" : "Maximum tribunal alert: outlandish promise or vaporware",
       colorClass: "text-red-400 border-red-500/60 bg-red-950/40",
       glowClass: "shadow-[0_0_35px_rgba(239,68,68,0.35)] animate-pulse",
       badgeBg: "bg-red-500/20 text-red-300",
     };
-  }, [smokePct, counts.total]);
+  }, [smokePct, counts.total, isEs]);
 
   // Longitud de arco del semicírculo (R = 82 => L = pi * 82 ≈ 257.6)
   const arcLength = 257.6;
@@ -132,12 +135,16 @@ export const LiveVoting: React.FC<LiveVotingProps> = ({
         <div className="flex flex-wrap items-center justify-between gap-2 text-xs font-mono">
           <span className="flex items-center space-x-2 text-purple-400">
             <Radio className="w-3.5 h-3.5 animate-pulse text-red-400 shrink-0" />
-            <span className="tracking-wider text-[11px] sm:text-xs">CASO BAJO JURADO · PROPUESTO POR {authorName.toUpperCase()}</span>
+            <span className="tracking-wider text-[11px] sm:text-xs">
+              {isEs
+                ? `CASO BAJO JURADO · PROPUESTO POR ${authorName.toUpperCase()}`
+                : `CASE BEFORE JURY · PROPOSED BY ${authorName.toUpperCase()}`}
+            </span>
           </span>
           <span className="flex items-center space-x-1.5 text-slate-300 bg-slate-800/60 px-2.5 py-1 rounded-full border border-slate-700/60 text-[11px] sm:text-xs">
             <Users className="w-3.5 h-3.5 text-purple-400 shrink-0" />
             <span>
-              {counts.total} {counts.total === 1 ? "voto en vivo" : "votos sincronizados"}
+              {counts.total} {counts.total === 1 ? (isEs ? "voto en vivo" : "live vote") : (isEs ? "votos sincronizados" : "synced votes")}
             </span>
           </span>
         </div>
@@ -155,11 +162,11 @@ export const LiveVoting: React.FC<LiveVotingProps> = ({
           <span className="flex items-center space-x-1.5">
             <Activity className="w-4 h-4 text-purple-400" />
             <span className="tracking-widest uppercase font-semibold">
-              <PericialTerm term="Hype Score">Hype-o-Meter 3000</PericialTerm> · Sensor Colectivo
+              <PericialTerm term="Hype Score">Hype-o-Meter 3000</PericialTerm> · {isEs ? "Sensor Colectivo" : "Collective Sensor"}
             </span>
           </span>
           <span className="text-[11px] text-purple-300/80 bg-purple-950/50 px-2 py-0.5 rounded border border-purple-800/40">
-            Medición de Hype en Vivo
+            {isEs ? "Medición de Hype en Vivo" : "Live Hype Measurement"}
           </span>
         </div>
 
@@ -302,17 +309,17 @@ export const LiveVoting: React.FC<LiveVotingProps> = ({
               {counts.total === 0 ? "—" : `${smokePct}%`}
             </span>
             <span className="text-xs uppercase font-mono text-slate-400">
-              {counts.total === 0 ? "Sin votos aún" : "Índice de Humo"}
+              {counts.total === 0 ? (isEs ? "Sin votos aún" : "No votes yet") : (isEs ? "Índice de Humo" : "Hype Index")}
             </span>
           </div>
 
           <div className="flex items-center space-x-3 text-xs font-mono">
             <span className="text-emerald-400 font-semibold flex items-center space-x-1">
-              <span>● {counts.total === 0 ? "—" : `${legitPct}%`} Sólido</span>
+              <span>● {counts.total === 0 ? "—" : `${legitPct}%`} {isEs ? "Sólido" : "Solid"}</span>
             </span>
             <span className="text-slate-600">|</span>
             <span className="text-red-400 font-semibold flex items-center space-x-1">
-              <span>● {counts.total === 0 ? "—" : `${smokePct}%`} Humo</span>
+              <span>● {counts.total === 0 ? "—" : `${smokePct}%`} {isEs ? "Humo" : "Smoke"}</span>
             </span>
           </div>
 
@@ -338,11 +345,13 @@ export const LiveVoting: React.FC<LiveVotingProps> = ({
       {/* ========================================================= */}
       <div className="space-y-3">
         <div className="flex flex-wrap gap-2 items-center justify-between text-xs font-mono text-slate-400 px-1">
-          <span className="uppercase tracking-wider">Tu Juicio en Tiempo Real (Votación en Vivo)</span>
+          <span className="uppercase tracking-wider">
+            {isEs ? "Tu Juicio en Tiempo Real (Votación en Vivo)" : "Your Real-Time Judgment (Live Voting)"}
+          </span>
           {myVoteChoice && (
             <span className="text-purple-300 font-semibold flex items-center space-x-1">
               <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-              <span>Voto registrado en tiempo real</span>
+              <span>{isEs ? "Voto registrado en tiempo real" : "Vote recorded in real time"}</span>
             </span>
           )}
         </div>
@@ -371,14 +380,16 @@ export const LiveVoting: React.FC<LiveVotingProps> = ({
               </div>
               <div className="min-w-0">
                 <div className="font-extrabold text-sm sm:text-base flex flex-wrap items-center gap-1.5">
-                  <span>¡Es Puro Humo!</span>
+                  <span>{isEs ? "¡Es Puro Humo!" : "Pure Smoke / Fake!"}</span>
                   {myVoteChoice === "SMOKE" && (
                     <span className="text-[9px] sm:text-[10px] uppercase font-mono px-1.5 sm:px-2 py-0.5 rounded bg-red-500/20 text-red-300 border border-red-500/40 shrink-0">
-                      Tu Voto
+                      {isEs ? "Tu Voto" : "Your Vote"}
                     </span>
                   )}
                 </div>
-                <div className="text-[11px] sm:text-xs text-slate-400 mt-0.5 truncate">Promesa inflada / Sin sustento</div>
+                <div className="text-[11px] sm:text-xs text-slate-400 mt-0.5 truncate">
+                  {isEs ? "Promesa inflada / Sin sustento" : "Inflated promise / Unsubstantiated"}
+                </div>
               </div>
             </div>
             <div className="text-right font-mono z-10 shrink-0 pl-2">
@@ -386,7 +397,7 @@ export const LiveVoting: React.FC<LiveVotingProps> = ({
                 {counts.total === 0 ? "—" : `${smokePct}%`}
               </div>
               <div className="text-[10px] sm:text-[11px] text-slate-400 font-medium">
-                {counts.smoke} {counts.smoke === 1 ? "voto" : "votos"}
+                {counts.smoke} {counts.smoke === 1 ? (isEs ? "voto" : "vote") : (isEs ? "votos" : "votes")}
               </div>
             </div>
           </button>
@@ -414,14 +425,16 @@ export const LiveVoting: React.FC<LiveVotingProps> = ({
               </div>
               <div className="min-w-0">
                 <div className="font-extrabold text-sm sm:text-base flex flex-wrap items-center gap-1.5">
-                  <span>Tiene Sustento</span>
+                  <span>{isEs ? "Tiene Sustento" : "Has Substantiation"}</span>
                   {myVoteChoice === "LEGIT" && (
                     <span className="text-[9px] sm:text-[10px] uppercase font-mono px-1.5 sm:px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 shrink-0">
-                      Tu Voto
+                      {isEs ? "Tu Voto" : "Your Vote"}
                     </span>
                   )}
                 </div>
-                <div className="text-[11px] sm:text-xs text-slate-400 mt-0.5 truncate">Técnicamente viable y fundamentado</div>
+                <div className="text-[11px] sm:text-xs text-slate-400 mt-0.5 truncate">
+                  {isEs ? "Técnicamente viable y fundamentado" : "Technically viable and grounded"}
+                </div>
               </div>
             </div>
             <div className="text-right font-mono z-10 shrink-0 pl-2">
@@ -429,7 +442,7 @@ export const LiveVoting: React.FC<LiveVotingProps> = ({
                 {counts.total === 0 ? "—" : `${legitPct}%`}
               </div>
               <div className="text-[10px] sm:text-[11px] text-slate-400 font-medium">
-                {counts.legit} {counts.legit === 1 ? "voto" : "votos"}
+                {counts.legit} {counts.legit === 1 ? (isEs ? "voto" : "vote") : (isEs ? "votos" : "votes")}
               </div>
             </div>
           </button>
@@ -437,7 +450,15 @@ export const LiveVoting: React.FC<LiveVotingProps> = ({
       </div>
 
       <p role="status" className="text-sm text-center text-slate-300">
-        {isVoting ? "Guardando tu voto…" : myVoteChoice ? 'Tu voto: ' + (myVoteChoice === "SMOKE" ? "Humo" : "Sólido") + '. Puedes cambiarlo hasta que el anfitrión cierre la votación.' : "Elige Humo o Sólido. Tu voto es una opinión; la investigación contrastará las fuentes."}
+        {isVoting
+          ? (isEs ? "Guardando tu voto…" : "Saving your vote…")
+          : myVoteChoice
+          ? (isEs
+              ? 'Tu voto: ' + (myVoteChoice === "SMOKE" ? "Humo" : "Sólido") + '. Puedes cambiarlo hasta que el anfitrión cierre la votación.'
+              : 'Your vote: ' + (myVoteChoice === "SMOKE" ? "Smoke" : "Solid") + '. You can change it until the host closes voting.')
+          : (isEs
+              ? "Elige Humo o Sólido. Tu voto es una opinión; la investigación contrastará las fuentes."
+              : "Choose Smoke or Solid. Your vote is an opinion; the investigation will cross-reference sources.")}
       </p>
       {/* Barra de progreso comparativa en vivo */}
       <div className="space-y-2">
@@ -453,11 +474,13 @@ export const LiveVoting: React.FC<LiveVotingProps> = ({
         </div>
         <div className="flex justify-between text-[11px] font-mono text-slate-400">
           <span className="text-red-400 flex items-center space-x-1">
-            <span>🔥 Humo: {counts.smoke} {counts.total > 0 ? `(${smokePct}%)` : ""}</span>
+            <span>🔥 {isEs ? "Humo" : "Smoke"}: {counts.smoke} {counts.total > 0 ? `(${smokePct}%)` : ""}</span>
           </span>
-          <span className="text-slate-500 hidden sm:inline">Reactividad WebSocket instantánea</span>
+          <span className="text-slate-500 hidden sm:inline">
+            {isEs ? "Reactividad WebSocket instantánea" : "Instant WebSocket reactivity"}
+          </span>
           <span className="text-emerald-400 flex items-center space-x-1">
-            <span>🛡️ Sólido: {counts.legit} {counts.total > 0 ? `(${legitPct}%)` : ""}</span>
+            <span>🛡️ {isEs ? "Sólido" : "Solid"}: {counts.legit} {counts.total > 0 ? `(${legitPct}%)` : ""}</span>
           </span>
         </div>
       </div>
@@ -469,9 +492,13 @@ export const LiveVoting: React.FC<LiveVotingProps> = ({
         <div className="flex items-center justify-between text-xs font-mono text-slate-400">
           <span className="flex items-center space-x-1.5">
             <Radio className="w-3 h-3 text-emerald-400 animate-ping" />
-            <span className="uppercase text-[11px] tracking-wider">Feed de Jurados en Vivo</span>
+            <span className="uppercase text-[11px] tracking-wider">
+              {isEs ? "Feed de Jurados en Vivo" : "Live Juror Feed"}
+            </span>
           </span>
-          <span className="text-[10px] text-slate-500">Últimos votos emitidos</span>
+          <span className="text-[10px] text-slate-500">
+            {isEs ? "Últimos votos emitidos" : "Latest cast votes"}
+          </span>
         </div>
 
         {counts.recentVoters && counts.recentVoters.length > 0 ? (
@@ -489,12 +516,12 @@ export const LiveVoting: React.FC<LiveVotingProps> = ({
                 <span className="flex items-center space-x-1">
                   {voter.choice === "SMOKE" ? (
                     <>
-                      <span>HUMO</span>
+                      <span>{isEs ? "HUMO" : "SMOKE"}</span>
                       <Flame className="w-3 h-3 text-red-400" />
                     </>
                   ) : (
                     <>
-                      <span>SÓLIDO</span>
+                      <span>{isEs ? "SÓLIDO" : "SOLID"}</span>
                       <CheckCircle2 className="w-3 h-3 text-emerald-400" />
                     </>
                   )}
@@ -504,7 +531,7 @@ export const LiveVoting: React.FC<LiveVotingProps> = ({
           </div>
         ) : (
           <div className="text-xs font-mono text-slate-500 py-1 italic">
-            Esperando los primeros sufragios de los jurados en la sala...
+            {isEs ? "Esperando los primeros sufragios de los jurados en la sala..." : "Waiting for the first votes from jurors in the room..."}
           </div>
         )}
       </div>
@@ -515,35 +542,35 @@ export const LiveVoting: React.FC<LiveVotingProps> = ({
       <div className="bg-gradient-to-r from-purple-950/30 via-slate-950/50 to-indigo-950/30 border border-purple-900/40 rounded-xl p-3 sm:p-3.5 flex flex-col sm:flex-row items-center justify-between gap-2.5 sm:gap-3">
         <div className="flex items-center space-x-2 text-xs font-mono text-purple-300">
           <Volume2 className="w-4 h-4 text-purple-400 animate-pulse shrink-0" />
-          <span className="font-semibold">Efectos Acústicos:</span>
+          <span className="font-semibold">{isEs ? "Efectos Acústicos:" : "Acoustic Effects:"}</span>
           <span className="text-slate-400 text-[11px] hidden sm:inline">
-            Sintetizador Web Audio en tiempo real
+            {isEs ? "Sintetizador Web Audio en tiempo real" : "Real-time Web Audio Synthesizer"}
           </span>
         </div>
         <div className="flex flex-wrap justify-center sm:justify-end gap-1.5 sm:gap-2">
           <button
             onClick={() => audio.playGavel()}
-            title="Martillazo acústico de juez"
+            title={isEs ? "Martillazo acústico de juez" : "Judge acoustic gavel"}
             className="px-2 sm:px-2.5 py-1 rounded-lg bg-slate-900 hover:bg-purple-900/40 border border-slate-700/80 hover:border-purple-500/60 text-[10px] sm:text-[11px] font-mono text-slate-300 flex items-center space-x-1 transition active:scale-95"
           >
             <Gavel className="w-3 h-3 text-amber-400" />
-            <span>Martillazo</span>
+            <span>{isEs ? "Martillazo" : "Gavel"}</span>
           </button>
           <button
             onClick={() => audio.playSmokeSiren()}
-            title="Sirena de humo / Bullshit alarm"
+            title={isEs ? "Sirena de humo / Bullshit alarm" : "Smoke siren / Bullshit alarm"}
             className="px-2 sm:px-2.5 py-1 rounded-lg bg-slate-900 hover:bg-red-900/40 border border-slate-700/80 hover:border-red-500/60 text-[10px] sm:text-[11px] font-mono text-slate-300 flex items-center space-x-1 transition active:scale-95"
           >
             <Flame className="w-3 h-3 text-red-400" />
-            <span>Sirena</span>
+            <span>{isEs ? "Sirena" : "Siren"}</span>
           </button>
           <button
             onClick={() => audio.playHypeAlert()}
-            title="Alerta de hype crítico"
+            title={isEs ? "Alerta de hype crítico" : "Critical hype alert"}
             className="px-2 sm:px-2.5 py-1 rounded-lg bg-slate-900 hover:bg-amber-900/40 border border-slate-700/80 hover:border-amber-500/60 text-[10px] sm:text-[11px] font-mono text-slate-300 flex items-center space-x-1 transition active:scale-95"
           >
             <AlertTriangle className="w-3 h-3 text-amber-400" />
-            <span>Alerta Hype</span>
+            <span>{isEs ? "Alerta Hype" : "Hype Alert"}</span>
           </button>
         </div>
       </div>
@@ -555,13 +582,25 @@ export const LiveVoting: React.FC<LiveVotingProps> = ({
         <div className="text-xs text-slate-400 text-center sm:text-left">
           {isHost ? (
             <span className="space-y-0.5 block">
-              <span className="text-purple-300 font-semibold block">Eres el Presidente del Tribunal (Host).</span>
-              <span>Comparte el enlace y espera los votos del jurado. Al investigar se cierra la votación.</span>
+              <span className="text-purple-300 font-semibold block">
+                {isEs ? "Eres el Presidente del Tribunal (Host)." : "You are the Tribunal President (Host)."}
+              </span>
+              <span>
+                {isEs
+                  ? "Comparte el enlace y espera los votos del jurado. Al investigar se cierra la votación."
+                  : "Share the link and wait for juror votes. Investigating will close voting."}
+              </span>
             </span>
           ) : (
             <span className="space-y-0.5 block">
-              <span className="text-purple-300 font-semibold block">Participando como Jurado (Invitado).</span>
-              <span>Tu voto se comparte con toda la sala. El anfitrión decide cuándo investigar.</span>
+              <span className="text-purple-300 font-semibold block">
+                {isEs ? "Participando como Jurado (Invitado)." : "Participating as Juror (Guest)."}
+              </span>
+              <span>
+                {isEs
+                  ? "Tu voto se comparte con toda la sala. El anfitrión decide cuándo investigar."
+                  : "Your vote is shared with the room. The host decides when to investigate."}
+              </span>
             </span>
           )}
         </div>
@@ -573,12 +612,18 @@ export const LiveVoting: React.FC<LiveVotingProps> = ({
             className="w-full sm:w-auto bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-600 hover:from-purple-500 hover:to-indigo-500 text-white font-extrabold px-5 sm:px-7 py-3 sm:py-3.5 rounded-xl flex items-center justify-center space-x-2.5 shadow-xl shadow-purple-600/30 transition-all transform hover:-translate-y-0.5 active:scale-95 group text-xs sm:text-sm"
           >
             <Play className="w-4 h-4 fill-white group-hover:scale-110 transition-transform" />
-            <span>{isStartingAudit ? "Iniciando investigación…" : "Cerrar votación e investigar"}</span>
+            <span>
+              {isStartingAudit
+                ? (isEs ? "Iniciando investigación…" : "Starting investigation…")
+                : (isEs ? "Cerrar votación e investigar" : "Close voting & investigate")}
+            </span>
           </button>
         ) : (
           <div className="w-full sm:w-auto flex items-center justify-center space-x-2.5 bg-purple-950/40 border border-purple-800/60 text-purple-300 px-4 sm:px-5 py-2.5 sm:py-3 rounded-xl text-xs font-mono">
             <Loader2 className="w-4 h-4 animate-spin text-purple-400 shrink-0" />
-            <span>Esperando a que el Host inicie la auditoría...</span>
+            <span>
+              {isEs ? "Esperando a que el Host inicie la auditoría..." : "Waiting for Host to start audit..."}
+            </span>
           </div>
         )}
       </div>

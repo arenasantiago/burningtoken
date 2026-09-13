@@ -1,5 +1,6 @@
 import React from "react";
-import { Flame, Scale, Copy, Check, ShieldCheck, Crown, Radio } from "lucide-react";
+import { Flame, Scale, Copy, Check, ShieldCheck, Crown, Radio, Languages } from "lucide-react";
+import { useLanguage } from "../context/LanguageContext";
 
 interface HeaderProps {
   roomCode?: string;
@@ -20,6 +21,7 @@ export const Header: React.FC<HeaderProps> = ({
   onEditNickname,
   onLeaveRoom,
 }) => {
+  const { language, toggleLanguage, t } = useLanguage();
   const [copied, setCopied] = React.useState(false);
 
   const [copyError, setCopyError] = React.useState(false);
@@ -42,55 +44,66 @@ export const Header: React.FC<HeaderProps> = ({
         <div className="flex items-center space-x-2 sm:space-x-3 min-w-0">
           <button
             onClick={onPlayGavel}
-            title="Golpear martillo de juez (Sintetizador Web Audio)"
+            title={t.header.gavelTooltip}
             className="group relative bg-purple-950/70 hover:bg-purple-900/90 p-2 sm:p-2.5 rounded-xl border border-purple-500/40 text-purple-400 hover:text-purple-200 transition active:scale-90 shadow-lg shadow-purple-950/40 focus:outline-none shrink-0"
           >
             <Scale className="w-4 h-4 sm:w-5 sm:h-5 transition group-hover:rotate-12" />
             <span className="absolute -bottom-8 left-1/2 -translate-x-1/2 bg-slate-900 text-[10px] font-mono text-purple-300 px-2 py-0.5 rounded border border-purple-800 opacity-0 group-hover:opacity-100 transition pointer-events-none whitespace-nowrap shadow-md">
-              Golpear Martillo ⚖️
+              {t.header.gavelBadge}
             </span>
           </button>
 
           <div className="min-w-0">
             <div className="flex items-center space-x-1.5 sm:space-x-2">
               <h1 className="font-black text-base sm:text-lg md:text-xl text-white tracking-tight flex items-center gap-1 shrink-0">
-                <span>TRUTH</span>
+                <span>{t.header.titlePrefix}</span>
                 <span className="bg-gradient-to-r from-purple-400 to-indigo-400 bg-clip-text text-transparent">
-                  TRIBUNAL
+                  {t.header.titleSuffix}
                 </span>
               </h1>
               <span className="bg-red-500/10 text-red-400 border border-red-500/30 text-[9px] sm:text-xs px-1.5 sm:px-2 py-0.5 rounded-full font-mono flex items-center space-x-1 truncate max-w-[130px] sm:max-w-none">
                 <Flame className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-red-500 animate-pulse shrink-0" />
-                <span className="hidden sm:inline">Hype & Fake News Auditor</span>
-                <span className="sm:hidden">Auditor</span>
+                <span className="hidden sm:inline">{t.header.badgeAuditor}</span>
+                <span className="sm:hidden">{t.header.badgeAuditorShort}</span>
               </span>
             </div>
             <p className="text-[11px] text-slate-400 hidden sm:block font-mono">
-              ¿Noticia Real o Puro Humo? · Auditoría Colaborativa & Fact-Checking con IA
+              {t.header.tagline}
             </p>
           </div>
         </div>
 
         {/* Status, Room & Pro Controls */}
         <div className="flex flex-wrap items-center gap-2 w-full lg:w-auto">
+          {/* Selector de idioma ES / EN */}
+          <button
+            onClick={toggleLanguage}
+            title={t.header.switchLanguage}
+            aria-label={t.header.switchLanguage}
+            className="flex items-center space-x-1 bg-slate-900/90 hover:bg-slate-800 border border-purple-500/40 hover:border-purple-400 px-2.5 py-1.5 rounded-lg text-xs font-mono text-purple-200 transition shadow-sm"
+          >
+            <Languages className="w-3.5 h-3.5 text-purple-400" />
+            <span className="text-[11px] font-bold">{language === "es" ? "🇪🇸 ES" : "🇬🇧 EN"}</span>
+          </button>
+
           {/* Badge WebSocket en vivo */}
           <div className="hidden lg:inline-flex items-center space-x-1.5 bg-emerald-950/50 border border-emerald-500/30 text-emerald-300 text-[10px] font-mono px-2.5 py-1 rounded-full shadow-sm">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span>
             <Radio className="w-3 h-3 text-emerald-400" />
-            <span>EN VIVO · SYNC</span>
+            <span>{t.header.liveSync}</span>
           </div>
 
           {/* Sala activa */}
           {roomCode && (
             <div className="flex items-center bg-slate-900/90 border border-purple-500/30 rounded-lg px-2 sm:px-2.5 py-1 space-x-1 sm:space-x-1.5 shadow-sm">
-              <span className="text-[9px] sm:text-[10px] text-slate-400 font-mono hidden xs:inline">SALA:</span>
+              <span className="text-[9px] sm:text-[10px] text-slate-400 font-mono hidden xs:inline">{t.header.roomCodePrefix}</span>
               <span className="text-[11px] sm:text-xs font-bold text-purple-300 font-mono tracking-wider">
                 {roomCode}
               </span>
               <button
                 onClick={handleCopyLink}
-                aria-label="Copiar enlace de invitación"
-                title="Copiar enlace de invitación"
+                aria-label={t.header.copyLink}
+                title={t.header.copyLink}
                 className="text-slate-400 hover:text-white transition min-h-11 min-w-11 flex items-center justify-center hover:bg-slate-800 rounded"
               >
                 {copied ? <Check className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-emerald-400" /> : <Copy className="w-3 h-3 sm:w-3.5 sm:h-3.5" />}
@@ -98,12 +111,12 @@ export const Header: React.FC<HeaderProps> = ({
             </div>
           )}
 
-          <span role="status" className="text-xs text-emerald-300">{copied ? "Enlace copiado" : ""}</span>
+          <span role="status" className="text-xs text-emerald-300">{copied ? t.header.copyLinkSuccess : ""}</span>
           {/* Nickname del Jurado */}
           {nickname && (
             <button
               onClick={onEditNickname}
-              title="Tu nombre en el tribunal (haz clic para editar)"
+              title={t.header.changeNickname}
               disabled={!onEditNickname}
               className="flex min-h-11 items-center space-x-1.5 bg-slate-900 border border-slate-700/80 hover:border-purple-500/60 rounded-lg px-2.5 py-1 text-xs font-mono text-slate-300 transition"
             >
@@ -112,7 +125,7 @@ export const Header: React.FC<HeaderProps> = ({
             </button>
           )}
 
-          {onLeaveRoom && <button onClick={onLeaveRoom} className="min-h-11 px-3 text-xs text-slate-300 hover:text-white">Salir de la sala</button>}
+          {onLeaveRoom && <button onClick={onLeaveRoom} className="min-h-11 px-3 text-xs text-slate-300 hover:text-white">{t.header.leaveRoom}</button>}
           {/* RevenueCat Pro Entitlement Status */}
           <button
             onClick={onOpenPaywall}
@@ -125,13 +138,13 @@ export const Header: React.FC<HeaderProps> = ({
             {hasProAccess ? (
               <>
                 <ShieldCheck className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-400 shrink-0" />
-                <span className="font-mono text-[11px] sm:text-xs hidden sm:inline">Dossier VC Activo</span>
+                <span className="font-mono text-[11px] sm:text-xs hidden sm:inline">{t.header.proActive}</span>
                 <span className="font-mono text-[11px] sm:hidden">Pro</span>
               </>
             ) : (
               <>
                 <Crown className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-400 animate-pulse shrink-0" />
-                <span className="hidden sm:inline">Desbloquear </span>
+                <span className="hidden sm:inline">{language === 'es' ? 'Desbloquear ' : 'Unlock '}</span>
                 <span>Pro</span>
               </>
             )}

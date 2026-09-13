@@ -1,36 +1,61 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { Sparkles, Radio, Wand2, Loader2, ArrowRight, Scale } from "lucide-react";
 import { useAction } from "convex/react";
 import { api } from "../../convex/_generated/api";
+import { useLanguage } from "../context/LanguageContext";
 
 interface InRoomLobbyProps {
+  sessionToken: string;
   roomCode: string;
   isHost: boolean;
   nickname: string;
   onLaunchNextClaim: (claimText: string) => void | Promise<void>;
 }
 
-const PRESET_NEXT_CLAIMS = [
-  {
-    category: "Viral & Fake News",
-    title: "Agua con sal del Himalaya en ayunas desintoxica metales pesados y cura la hipertensión en 7 días",
-  },
-  {
-    category: "AI & Startups",
-    title: "Agente autónomo que reemplaza a todo tu equipo de ingeniería con 99.9% de precisión",
-  },
-  {
-    category: "Hardware & Robótica",
-    title: "Humanoide doméstico que cocina, programa y limpia por $1,500 USD disponible el próximo mes",
-  },
-];
-
 export const InRoomLobby: React.FC<InRoomLobbyProps> = ({
+  sessionToken,
   roomCode,
   isHost,
   nickname,
   onLaunchNextClaim,
 }) => {
+  const { language } = useLanguage();
+  const isEs = language === "es";
+
+  const presetNextClaims = useMemo(
+    () =>
+      isEs
+        ? [
+            {
+              category: "Viral & Fake News",
+              title: "Agua con sal del Himalaya en ayunas desintoxica metales pesados y cura la hipertensión en 7 días",
+            },
+            {
+              category: "AI & Startups",
+              title: "Agente autónomo que reemplaza a todo tu equipo de ingeniería con 99.9% de precisión",
+            },
+            {
+              category: "Hardware & Robótica",
+              title: "Humanoide doméstico que cocina, programa y limpia por $1,500 USD disponible el próximo mes",
+            },
+          ]
+        : [
+            {
+              category: "Viral & Fake News",
+              title: "Fasting with Himalayan salt water detoxifies heavy metals and cures hypertension in 7 days",
+            },
+            {
+              category: "AI & Startups",
+              title: "Autonomous agent replaces your entire engineering team with 99.9% accuracy",
+            },
+            {
+              category: "Hardware & Robotics",
+              title: "Domestic humanoid that cooks, codes, and cleans for $1,500 USD available next month",
+            },
+          ],
+    [isEs]
+  );
+
   const [claimText, setClaimText] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -44,15 +69,18 @@ export const InRoomLobby: React.FC<InRoomLobbyProps> = ({
     if (!claimText.trim()) return;
     setIsLoadingSuggestions(true);
     try {
-      const results = await suggestClaimsAction({ draftText: claimText });
+      const results = await suggestClaimsAction({ draftText: claimText, sessionToken });
       setSuggestions(results);
     } catch (err) {
-      setError("El asistente no está disponible. Puedes continuar con tu texto original.");
+      setError(
+        isEs
+          ? "El asistente no está disponible. Puedes continuar con tu texto original."
+          : "The prompt assistant is unavailable. You may continue with your original text."
+      );
     } finally {
       setIsLoadingSuggestions(false);
     }
   };
-
 
   const handleSubmitClaim = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -60,9 +88,14 @@ export const InRoomLobby: React.FC<InRoomLobbyProps> = ({
     submitting.current = true;
     setIsSubmitting(true);
     setError(null);
-    try { await onLaunchNextClaim(claimText.trim()); }
-    catch (err) { setError(err instanceof Error ? err.message : "No pudimos abrir el caso. Intenta de nuevo."); }
-    finally { submitting.current = false; setIsSubmitting(false); }
+    try {
+      await onLaunchNextClaim(claimText.trim());
+    } catch (err) {
+      setError(err instanceof Error ? err.message : isEs ? "No pudimos abrir el caso. Intenta de nuevo." : "Could not open case. Please try again.");
+    } finally {
+      submitting.current = false;
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -75,20 +108,20 @@ export const InRoomLobby: React.FC<InRoomLobbyProps> = ({
           </div>
           <div>
             <h3 className="text-base sm:text-lg font-black text-white flex items-center space-x-2">
-              <span>SALA ACTIVA:</span>
+              <span>{isEs ? "SALA ACTIVA:" : "ACTIVE ROOM:"}</span>
               <span className="font-mono text-purple-400">{roomCode}</span>
             </h3>
             <p className="text-[11px] sm:text-xs text-slate-400 font-mono">
               {isHost
-                ? "Eres el Presidente del Tribunal. Define la siguiente afirmación para someterla a juicio."
-                : "Permaneciendo en la sala. Esperando a que el anfitrión lance el siguiente caso."}
+                ? (isEs ? "Eres el Presidente del Tribunal. Define la siguiente afirmación para someterla a juicio." : "You are the Tribunal President. Enter the next claim to bring to trial.")
+                : (isEs ? "Permaneciendo en la sala. Esperando a que el anfitrión lance el siguiente caso." : "Staying in the room. Waiting for the host to launch the next case.")}
             </p>
           </div>
         </div>
 
         <div className="flex items-center space-x-2 bg-slate-900 border border-slate-800 px-3 py-1.5 rounded-full text-[11px] sm:text-xs font-mono text-slate-300 shrink-0">
           <Radio className="w-3.5 h-3.5 text-emerald-400 animate-pulse" />
-          <span>Jurados conectados</span>
+          <span>{isEs ? "Jurados conectados" : "Connected jurors"}</span>
         </div>
       </div>
 
@@ -99,7 +132,7 @@ export const InRoomLobby: React.FC<InRoomLobbyProps> = ({
           <div className="space-y-2">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <label htmlFor="next-claim" className="text-xs font-mono font-bold text-slate-300 uppercase tracking-wider">
-                Noticia, Afirmación o Promesa Comercial:
+                {isEs ? "Noticia, Afirmación o Promesa Comercial:" : "News, Claim, or Commercial Promise:"}
               </label>
               <button
                 type="button"
@@ -110,21 +143,22 @@ export const InRoomLobby: React.FC<InRoomLobbyProps> = ({
                 {isLoadingSuggestions ? (
                   <>
                     <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                    <span>Optimizando...</span>
+                    <span>{isEs ? "Optimizando..." : "Optimizing..."}</span>
                   </>
                 ) : (
                   <>
                     <Wand2 className="w-3.5 h-3.5 text-purple-400" />
-                    <span>Optimizar con Asistente de Prompts</span>
+                    <span>{isEs ? "Optimizar con Asistente de Prompts" : "Optimize with Prompt Assistant"}</span>
                   </>
                 )}
               </button>
             </div>
 
             <textarea id="next-claim"
+              maxLength={1000}
               value={claimText}
               onChange={(e) => setClaimText(e.target.value)}
-              placeholder="Pega aquí la noticia viral, tweet, pitch de startup o promesa comercial..."
+              placeholder={isEs ? "Pega aquí la noticia viral, tweet, pitch de startup o promesa comercial..." : "Paste viral news, tweet, startup pitch, or commercial promise here..."}
               rows={3}
               className="w-full bg-slate-950 border border-slate-700 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition resize-none"
               required
@@ -136,7 +170,7 @@ export const InRoomLobby: React.FC<InRoomLobbyProps> = ({
             <div className="bg-purple-950/20 border border-purple-800/40 rounded-xl p-4 space-y-3">
               <div className="flex items-center space-x-2 text-xs font-bold text-purple-300 font-mono">
                 <Sparkles className="w-4 h-4 text-purple-400" />
-                <span>Formulaciones de Alta Verificabilidad Sugeridas:</span>
+                <span>{isEs ? "Formulaciones de Alta Verificabilidad Sugeridas:" : "Suggested High-Verifiability Formulations:"}</span>
               </div>
               <div className="space-y-2">
                 {suggestions.map((sug, idx) => (
@@ -148,7 +182,7 @@ export const InRoomLobby: React.FC<InRoomLobbyProps> = ({
                     <div className="flex items-center justify-between text-[11px] font-mono">
                       <span className="text-purple-300 font-bold">{sug.angle}</span>
                       <span className="text-emerald-400 bg-emerald-950/60 border border-emerald-700/50 px-2 py-0.5 rounded">
-                        {sug.verifiabilityScore}% Verificable
+                        {sug.verifiabilityScore}% {isEs ? "Verificable" : "Verifiable"}
                       </span>
                     </div>
                     <p className="text-slate-200 font-medium">"{sug.text}"</p>
@@ -160,9 +194,9 @@ export const InRoomLobby: React.FC<InRoomLobbyProps> = ({
 
           {/* Presets Rápidos */}
           <div className="space-y-2">
-            <span className="text-[11px] font-mono text-slate-400 uppercase">O elige un caso rápido:</span>
+            <span className="text-[11px] font-mono text-slate-400 uppercase">{isEs ? "O elige un caso rápido:" : "Or choose a quick preset case:"}</span>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-              {PRESET_NEXT_CLAIMS.map((preset, idx) => (
+              {presetNextClaims.map((preset, idx) => (
                 <button
                   key={idx}
                   type="button"
@@ -180,7 +214,7 @@ export const InRoomLobby: React.FC<InRoomLobbyProps> = ({
             type="submit"
             disabled={isSubmitting || !claimText.trim()} className="w-full bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-600 hover:from-purple-500 hover:to-indigo-500 text-white font-extrabold py-3 sm:py-3.5 px-4 sm:px-6 rounded-xl flex items-center justify-center space-x-2 shadow-xl shadow-purple-600/30 transition transform hover:-translate-y-0.5 active:scale-95 text-xs sm:text-sm"
           >
-            <span>{isSubmitting ? "Abriendo caso…" : "Abrir votación"}</span>
+            <span>{isSubmitting ? (isEs ? "Abriendo caso…" : "Opening case…") : (isEs ? "Abrir votación" : "Open voting")}</span>
             <ArrowRight className="w-4 h-4" />
           </button>
         </form>
@@ -196,16 +230,18 @@ export const InRoomLobby: React.FC<InRoomLobbyProps> = ({
 
           <div className="space-y-1 max-w-md">
             <h4 className="text-base font-bold text-white">
-              Esperando el siguiente caso
+              {isEs ? "Esperando el siguiente caso" : "Waiting for the next case"}
             </h4>
             <p className="text-xs text-slate-400 leading-relaxed">
-              En cuanto el Host confirme la afirmación, tu pantalla cambiará automáticamente a la votación en vivo sin desconectarte de la sala.
+              {isEs
+                ? "En cuanto el Host confirme la afirmación, tu pantalla cambiará automáticamente a la votación en vivo sin desconectarte de la sala."
+                : "As soon as the Host confirms the claim, your screen will automatically switch to live voting without leaving the room."}
             </p>
           </div>
 
           <div className="pt-2">
             <span className="text-[11px] font-mono text-purple-300/80 bg-purple-950/40 border border-purple-800/40 px-3 py-1 rounded-full">
-              Jurado: {nickname} · Conectado y listo
+              {isEs ? `Jurado: ${nickname} · Conectado y listo` : `Juror: ${nickname} · Connected and ready`}
             </span>
           </div>
         </div>

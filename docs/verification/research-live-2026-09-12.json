@@ -1,0 +1,131 @@
+{
+  "checkedAt": "2026-09-12T21:25:15.422Z",
+  "scope": "Real Linkup/Nebius requests; Convex persistence simulated in memory. Does not verify deployment, multiplayer, accuracy benchmark, Render or RevenueCat.",
+  "claim": "El paper original Attention Is All You Need de 2017 propone una arquitectura Transformer basada en atención, sin recurrencia ni convoluciones.",
+  "model": "Qwen/Qwen3-30B-A3B-Instruct-2507",
+  "providerRequests": [
+    {
+      "provider": "api.linkup.so",
+      "status": 200,
+      "latencyMs": 7344
+    },
+    {
+      "provider": "api.linkup.so",
+      "status": 200,
+      "latencyMs": 7215
+    },
+    {
+      "provider": "api.tokenfactory.nebius.com",
+      "status": 200,
+      "latencyMs": 33154,
+      "responseMetadata": {
+        "finishReason": "stop",
+        "contentLength": 3405,
+        "validJson": true,
+        "verdict": "VERIFIED_LEGIT",
+        "hypeScore": 10,
+        "summaryPresent": true,
+        "assessmentCount": 8,
+        "usage": {
+          "completion_tokens": 781,
+          "prompt_tokens": 4104,
+          "total_tokens": 4885,
+          "completion_tokens_details": null,
+          "prompt_tokens_details": null
+        }
+      }
+    }
+  ],
+  "verdict": "VERIFIED_LEGIT",
+  "summary": "El paper original 'Attention Is All You Need' (2017) propone explícitamente el modelo Transformer como arquitectura basada únicamente en mecanismos de atención, eliminando por completo la recurrencia y las convoluciones. Esta afirmación está directamente respaldada por citas textuales del texto original y múltiples fuentes confiables.",
+  "auditSources": {
+    "initialSearch": "live",
+    "contrastSearch": "live",
+    "synthesis": "live"
+  },
+  "metrics": {
+    "latencyMs": 33166,
+    "inputTokens": 4104,
+    "outputTokens": 781,
+    "measurementSource": "provider"
+  },
+  "followUpBasedOnStoredSources": 4,
+  "researchGaps": [
+    "Buscar código, datos o replicaciones que permitan verificar lo reportado.",
+    "Buscar límites, condiciones de validez y contraejemplos que no aparecen en los extractos iniciales.",
+    "Contrastar los hallazgos iniciales con una fuente independiente; comprobar también si corroboran la afirmación."
+  ],
+  "evidence": [
+    {
+      "id": "check-source-1",
+      "source": "linkup",
+      "step": "initial_search",
+      "url": "https://arxiv.org/abs/1706.03762v5",
+      "assessment": "supports",
+      "uncertaintyLevel": "LOW",
+      "reason": "Cita textual directa del abstract del paper original."
+    },
+    {
+      "id": "check-source-2",
+      "source": "linkup",
+      "step": "initial_search",
+      "url": "https://en.wikipedia.org/wiki/Attention_Is_All_You_Need",
+      "assessment": "supports",
+      "uncertaintyLevel": "LOW",
+      "reason": "Confirma la eliminación de recurrencia y convoluciones en el modelo."
+    },
+    {
+      "id": "check-source-3",
+      "source": "linkup",
+      "step": "initial_search",
+      "url": "https://melis.ai/dossiers/scientific-papers/attention-is-all-you-need",
+      "assessment": "supports",
+      "uncertaintyLevel": "LOW",
+      "reason": "Reproduce textualmente la afirmación clave del paper."
+    },
+    {
+      "id": "check-source-4",
+      "source": "linkup",
+      "step": "initial_search",
+      "url": "https://scispace.com/papers/attention-is-all-you-need-1hodz0wcqb",
+      "assessment": "unassessed",
+      "uncertaintyLevel": "HIGH"
+    },
+    {
+      "id": "check-source-5",
+      "source": "linkup",
+      "step": "follow_up_contrast",
+      "url": "https://dl.acm.org/doi/abs/10.5555/3295222.3295349",
+      "assessment": "supports",
+      "uncertaintyLevel": "LOW",
+      "reason": "Cita textual del artículo publicado en NeurIPS 2017."
+    },
+    {
+      "id": "check-source-6",
+      "source": "linkup",
+      "step": "follow_up_contrast",
+      "url": "https://mlanthology.org/neurips/2017/vaswani2017neurips-attention/",
+      "assessment": "supports",
+      "uncertaintyLevel": "LOW",
+      "reason": "Reproduce la afirmación clave del paper en una fuente académica verificable."
+    },
+    {
+      "id": "check-source-7",
+      "source": "linkup",
+      "step": "follow_up_contrast",
+      "url": "https://attentionisallyouneed.uk/",
+      "assessment": "supports",
+      "uncertaintyLevel": "LOW",
+      "reason": "Cita textual del texto del paper en versión web oficial."
+    },
+    {
+      "id": "check-source-8",
+      "source": "linkup",
+      "step": "follow_up_contrast",
+      "url": "https://www.alphaxiv.org/abs/1706.03762v4",
+      "assessment": "supports",
+      "uncertaintyLevel": "LOW",
+      "reason": "Confirma la eliminación total de recurrencia y convoluciones."
+    }
+  ]
+}

@@ -1,5 +1,6 @@
 import { internalMutation, query } from "./_generated/server";
 import { v } from "convex/values";
+import { validateClaimText, validateNickname, validateSourceUrl } from "./lib/inputValidation";
 
 export const create = internalMutation({
   args: {
@@ -9,11 +10,13 @@ export const create = internalMutation({
     sourceUrl: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
+    const room = await ctx.db.get(args.roomId);
+    if (!room) throw new Error("La sala no existe.");
     const claimId = await ctx.db.insert("claims", {
       roomId: args.roomId,
-      authorName: args.authorName,
-      content: args.content,
-      sourceUrl: args.sourceUrl,
+      authorName: validateNickname(args.authorName),
+      content: validateClaimText(args.content),
+      sourceUrl: validateSourceUrl(args.sourceUrl),
       createdAt: Date.now(),
     });
 

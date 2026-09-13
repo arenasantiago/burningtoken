@@ -11,7 +11,7 @@ const bundle = await build({ entryPoints: ['convex/votes.ts'], bundle: true, pla
 writeFileSync(file, bundle.outputFiles[0].text);
 after(() => { unlinkSync(file); rmdirSync(dir); });
 const { cast, getCounts } = createRequire(import.meta.url)(file);
-const args = { roomId: 'room', claimId: 'claim', voterId: 'host', voterName: 'Host', choice: 'LEGIT' };
+const args = { roomId: 'room', claimId: 'claim', voterId: 'voter_abcdef', voterName: 'Host', choice: 'LEGIT' };
 function database(room) {
   const rows = [];
   return { rows, get: async () => room,
@@ -36,7 +36,7 @@ test('rechaza un caso anterior aunque la sala vuelva a votar', async () => {
 test('host e invitado cambian votos sin duplicados y conservan 0% real', async () => {
   const db = database({ status: 'voting', activeClaimId: 'claim' });
   await cast._handler({ db }, args);
-  const guest = { ...args, voterId: 'guest', voterName: 'Jurado', choice: 'SMOKE' };
+  const guest = { ...args, voterId: 'voter_ghijkl', voterName: 'Jurado', choice: 'SMOKE' };
   await cast._handler({ db }, guest);
   assert.equal((await getCounts._handler({ db }, { claimId: 'claim' })).smokePercentage, 50);
   await cast._handler({ db }, { ...guest, choice: 'LEGIT' });

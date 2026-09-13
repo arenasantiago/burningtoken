@@ -11,13 +11,21 @@ export const dispatch = internalAction({
     const executionToken = inv.executionToken;
     try {
       const render = new Render({ token: process.env.RENDER_API_KEY });
-      const run = await render.workflows.startTask(process.env.RENDER_TASK_SLUG!, [{ investigationId, executionToken }], AbortSignal.timeout(20000));
+      const rawSlug = process.env.RENDER_TASK_SLUG || "";
+      const slug = rawSlug.includes("/") ? rawSlug : `${rawSlug}/auditClaim`;
+      const run = await render.workflows.startTask(slug, [{ investigationId, executionToken }], AbortSignal.timeout(20000));
       await ctx.runMutation(internal.investigations.setRun, { investigationId, executionToken, runId: run.taskRunId });
       await ctx.scheduler.runAfter(15000, internal.workflowDispatch.monitor, { investigationId, executionToken, runId: run.taskRunId });
-    } catch {
-      // A timeout may have happened after Render accepted the run. Invalidate this
-      // generation before allowing an explicit retry, so a late worker cannot write.
-      await ctx.runMutation(internal.investigations.setRun, { investigationId, executionToken, error: "No pudimos confirmar el inicio en Render. Reintenta la auditoría." });
+    } catch (err) {
+      console.error("Render workflow dispatch error:", err);
+      // Rotate the generation before continuing locally: a late Render worker
+      // cannot write after Convex takes over the same investigation.
+      await ctx.runMutation(internal.investigations.activateDirectFallback, {
+        investigationId,
+        executionToken,
+        nextExecutionToken: crypto.randomUUID(),
+        reason: "Render no pudo confirmar el inicio. Convex asumió la continuidad directa; esta ejecución no acredita Render.",
+      });
     }
   },
 });

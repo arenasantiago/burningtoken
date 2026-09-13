@@ -1,5 +1,6 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
+import { validateNickname, validateVoterId } from "./lib/inputValidation";
 
 export const cast = mutation({
   args: {
@@ -10,6 +11,8 @@ export const cast = mutation({
     choice: v.union(v.literal("SMOKE"), v.literal("LEGIT")),
   },
   handler: async (ctx, args) => {
+    const voterId = validateVoterId(args.voterId);
+    const voterName = validateNickname(args.voterName);
     const room = await ctx.db.get(args.roomId);
     if (!room || room.status !== "voting" || room.activeClaimId !== args.claimId) {
       throw new Error("La votación de este caso ya está cerrada.");
@@ -18,14 +21,14 @@ export const cast = mutation({
     const existing = await ctx.db
       .query("votes")
       .withIndex("by_claim_voter", (q) =>
-        q.eq("claimId", args.claimId).eq("voterId", args.voterId)
+        q.eq("claimId", args.claimId).eq("voterId", voterId)
       )
       .first();
 
     if (existing) {
       await ctx.db.patch(existing._id, {
         choice: args.choice,
-        voterName: args.voterName,
+        voterName,
         timestamp: Date.now(),
       });
       return existing._id;
@@ -34,8 +37,8 @@ export const cast = mutation({
     return await ctx.db.insert("votes", {
       claimId: args.claimId,
       roomId: args.roomId,
-      voterId: args.voterId,
-      voterName: args.voterName,
+      voterId,
+      voterName,
       choice: args.choice,
       timestamp: Date.now(),
     });
@@ -74,10 +77,11 @@ export const getMyVote = query({
     voterId: v.string(),
   },
   handler: async (ctx, args) => {
+    const voterId = validateVoterId(args.voterId);
     return await ctx.db
       .query("votes")
       .withIndex("by_claim_voter", (q) =>
-        q.eq("claimId", args.claimId).eq("voterId", args.voterId)
+        q.eq("claimId", args.claimId).eq("voterId", voterId)
       )
       .first();
   },

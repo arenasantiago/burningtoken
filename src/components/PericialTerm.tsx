@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { HelpCircle, X } from "lucide-react";
+import { useLanguage } from "../context/LanguageContext";
 
 interface PericialTermProps {
   term: string;
@@ -8,7 +9,7 @@ interface PericialTermProps {
   className?: string;
 }
 
-const GLOSSARY_TERMS: Record<string, { title: string; explanation: string }> = {
+const GLOSSARY_TERMS_ES: Record<string, { title: string; explanation: string }> = {
   "hype score": {
     title: "Índice de Hype (0 - 100%)",
     explanation: "Mide cuantitativamente qué tan inflada o exagerada es una afirmación comercial en comparación con las evidencias empíricas y benchmarks reales disponibles.",
@@ -63,20 +64,78 @@ const GLOSSARY_TERMS: Record<string, { title: string; explanation: string }> = {
   },
 };
 
+const GLOSSARY_TERMS_EN: Record<string, { title: string; explanation: string }> = {
+  "hype score": {
+    title: "Hype Index (0 - 100%)",
+    explanation: "Quantitatively measures how inflated or exaggerated a commercial claim is compared to available empirical evidence and real benchmarks.",
+  },
+  "inferencia forense": {
+    title: "Forensic LLM Inference",
+    explanation: "Expert analysis executed by a high-precision language model optimized to detect technical gaps, contradictions, and absence of proof.",
+  },
+  "deep research": {
+    title: "2-Phase Deep Research",
+    explanation: "Iterative search protocol: Phase 1 gathers claims and Phase 2 actively searches for gaps, unmentioned limitations, and counter-examples.",
+  },
+  "idempotencia": {
+    title: "Audit Idempotency",
+    explanation: "Engineering property ensuring that if an audit step is executed multiple times due to retries or errors, it produces the same result without duplicate database records.",
+  },
+  "checkpoints": {
+    title: "Control Checkpoints",
+    explanation: "Durably stored database markers that allow resuming an audit exactly from the last completed step in case of technical failure.",
+  },
+  "tolerancia a fallos": {
+    title: "Fault Tolerance & Resilience",
+    explanation: "System capability to absorb network disruptions or background worker crashes and automatically recover without losing gathered data.",
+  },
+  "due diligence": {
+    title: "Technical Due Diligence for VCs",
+    explanation: "Comprehensive architecture, patent, and source code investigation prior to venture capital investment to verify technology genuinely works.",
+  },
+  "caso límite": {
+    title: "Edge Case",
+    explanation: "Documented specific technical scenario where the AI model or web search may present uncertainty or require human judgment.",
+  },
+  "falsabilidad": {
+    title: "Falsifiability Criterion",
+    explanation: "Scientific principle stating that a claim is testable only if an experiment or empirical test can be designed to prove it false.",
+  },
+  "latencia de inferencia": {
+    title: "Inference Latency",
+    explanation: "Exact time in milliseconds taken by the Nebius Token Factory model to process evidence and deliver the verdict.",
+  },
+  "tokens": {
+    title: "Token Count",
+    explanation: "Atomic text units (words or subwords) processed by the model, enabling exact calculation of real computational audit cost.",
+  },
+  "entitlement": {
+    title: "Subscription Entitlement",
+    explanation: "Cryptographic permission identifier in RevenueCat that validates whether a juror has active access to confidential Pro reports.",
+  },
+  "tps": {
+    title: "TPS (Transactions Per Second)",
+    explanation: "Actual throughput of operations on a blockchain under stress testing conditions, commonly inflated in crypto marketing.",
+  },
+};
+
 export const PericialTerm: React.FC<PericialTermProps> = ({
   term,
   explanation,
   children,
   className = "",
 }) => {
+  const { language } = useLanguage();
+  const isEs = language === "es";
   const [isOpen, setIsOpen] = useState(false);
   const popoverRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
 
   const termKey = term.toLowerCase().trim();
-  const definition = GLOSSARY_TERMS[termKey] || {
+  const glossary = isEs ? GLOSSARY_TERMS_ES : GLOSSARY_TERMS_EN;
+  const definition = glossary[termKey] || {
     title: term,
-    explanation: explanation || "Término técnico de auditoría pericial.",
+    explanation: explanation || (isEs ? "Término técnico de auditoría pericial." : "Technical expert audit term."),
   };
 
   const finalExplanation = explanation || definition.explanation;
@@ -106,7 +165,7 @@ export const PericialTerm: React.FC<PericialTermProps> = ({
         ref={triggerRef}
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        title={`¿Qué significa ${definition.title}?`}
+        title={isEs ? `¿Qué significa ${definition.title}?` : `What does ${definition.title} mean?`}
         className="inline-flex items-center gap-1 group text-left underline decoration-dotted decoration-purple-400/60 hover:decoration-purple-300 underline-offset-4 focus:outline-none transition cursor-help"
       >
         <span>{children || term}</span>
@@ -130,7 +189,7 @@ export const PericialTerm: React.FC<PericialTermProps> = ({
             <button
               onClick={() => setIsOpen(false)}
               className="text-slate-400 hover:text-white p-0.5 rounded focus:outline-none"
-              title="Cerrar"
+              title={isEs ? "Cerrar" : "Close"}
             >
               <X className="w-3.5 h-3.5" />
             </button>
@@ -139,7 +198,7 @@ export const PericialTerm: React.FC<PericialTermProps> = ({
             {finalExplanation}
           </p>
           <div className="mt-2.5 pt-2 border-t border-slate-800/60 flex items-center justify-between text-[10px] text-slate-400 font-mono">
-            <span>Glosario Pericial</span>
+            <span>{isEs ? "Glosario Pericial" : "Expert Glossary"}</span>
             <span className="text-purple-400">Truth Tribunal</span>
           </div>
         </div>

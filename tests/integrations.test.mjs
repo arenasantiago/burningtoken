@@ -7,10 +7,10 @@ import { join } from 'node:path';
 import { createRequire } from 'node:module';
 const dir = mkdtempSync(join(tmpdir(), 'tribunal-workflow-'));
 const file = join(dir, 'sprint.cjs');
-const bundle = await build({ stdin: { contents: `export * as investigations from './convex/investigations'; export { assertExecution } from './convex/lib/execution'; export { sessionUserId, requireHost } from './convex/lib/session'; export { readTestStoreEntitlement, verifiedAccess } from './convex/lib/subscription';`, resolveDir: process.cwd(), loader: 'ts' }, bundle: true, platform: 'node', format: 'cjs', write: false });
+const bundle = await build({ stdin: { contents: `export * as investigations from './convex/investigations'; export * as entitlements from './convex/entitlements'; export { assertExecution } from './convex/lib/execution'; export { sessionUserId, requireHost } from './convex/lib/session'; export { readTestStoreEntitlement, verifiedAccess } from './convex/lib/subscription';`, resolveDir: process.cwd(), loader: 'ts' }, bundle: true, platform: 'node', format: 'cjs', write: false });
 writeFileSync(file, bundle.outputFiles[0].text);
 after(() => { unlinkSync(file); rmdirSync(dir); });
-const { investigations: inv, assertExecution, sessionUserId, requireHost, readTestStoreEntitlement, verifiedAccess } = createRequire(import.meta.url)(file);
+const { investigations: inv, entitlements: ent, assertExecution, sessionUserId, requireHost, readTestStoreEntitlement, verifiedAccess } = createRequire(import.meta.url)(file);
 const now = Date.now();
 const token = 'a'.repeat(64);
 function subscription(change = {}, entChange = {}) {
@@ -67,3 +67,35 @@ test('Render: las consultas públicas nunca exponen credenciales de ejecución',
  const result = await inv.getByClaim._handler({ db: { query: () => ({ withIndex: () => ({ order: () => ({ first: async () => ({ _id: 'inv', executionToken: 'secret', stageLease: 'private', stageLeaseUntil: 1 }) }) }) }) } }, { claimId: 'claim' });
  assert.deepEqual(result, { _id: 'inv' });
 });
+test('RevenueCat: el dossier enriquece el peritaje con matriz de riesgo y caso oficial', async () => {
+ const userId = await sessionUserId(token);
+ const entitlement = { userId, hasProAccess: true, expirationDate: now + 60000, verifiedBy: 'revenuecat', updatedAt: now, environment: 'SANDBOX', entitlementId: 'pro_auditor_access', productId: 'pro_auditor_monthly' };
+  const investigation = { _id: 'inv', roomId: 'room', claimId: 'claim', currentStep: 'completed', completionReason: 'assessed', verdict: 'CERTIFIED_SMOKE', hypeScore: 85, summary: 'Marketing desmedido sin sustento empírico.', edgeCaseWarning: 'Límites forenses' };
+  const claim = { _id: 'claim', roomId: 'room', content: 'IA cura todo en 2 días' };
+  const room = { _id: 'room', code: 'HYPE-742', title: 'Caso Startup', hostUserId: userId };
+ const evidence = [
+  { source: 'linkup', title: 'Paper 1', url: 'https://arxiv.org/1', snippet: 'No hay pruebas', assessment: 'contradicts', uncertaintyLevel: 'LOW', supportingQuote: 'No hay pruebas empíricas', assessmentReason: 'Contradicción directa', step: 'initial_search' }
+ ];
+ const ctx = {
+  db: {
+   query: (tbl) => ({
+    withIndex: (_name, fn) => ({
+     first: async () => tbl === 'userEntitlements' ? entitlement : null,
+     collect: async () => tbl === 'evidence' ? evidence : []
+    })
+   }),
+   get: async (id) => id === 'inv' ? investigation : id === 'claim' ? claim : id === 'room' ? room : null
+  }
+ };
+  const res = await ent.dossier._handler(ctx, { token, sessionToken: token, investigationId: 'inv' });
+ assert.equal(res.caseCode, 'HYPE-742');
+ assert.equal(res.verdict, 'CERTIFIED_SMOKE');
+ assert.equal(res.hypeScore, 85);
+ assert.ok(res.riskMatrix);
+ assert.match(res.riskMatrix.reputationalRisk, /Crítico/);
+ assert.match(res.riskMatrix.technicalRisk, /Alto/);
+ assert.match(res.riskMatrix.recommendation, /Rechazar/);
+ assert.equal(res.evidence.length, 1);
+ assert.equal(res.evidence[0].supportingQuote, 'No hay pruebas empíricas');
+});
+

@@ -66,6 +66,7 @@ export default defineSchema({
     failureRequested: v.optional(v.boolean()),
     failureConsumed: v.optional(v.boolean()),
     proAccess: v.optional(v.boolean()),
+    executionRoute: v.optional(v.union(v.literal("render"), v.literal("convex_direct"))),
     dispatchStartedAt: v.optional(v.number()),
     // Resultados de Nebius Token Factory (Applied AI)
     verdict: v.optional(verdictValidator),
@@ -110,4 +111,11 @@ export default defineSchema({
     productId: v.optional(v.string()),
     updatedAt: v.number(),
   }).index("by_user", ["userId"]),
+
+  aiRateLimits: defineTable({
+    userId: v.string(),
+    action: v.literal("claim_suggestions"),
+    windowStartedAt: v.number(),
+    count: v.number(),
+  }).index("by_user_action", ["userId", "action"]),
 });

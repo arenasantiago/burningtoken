@@ -1,5 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { Scale, UserCheck, Sparkles, Shield, ArrowRight } from "lucide-react";
+import { useLanguage } from "../context/LanguageContext";
 
 interface GuestJoinModalProps {
   isOpen: boolean;
@@ -9,15 +10,6 @@ interface GuestJoinModalProps {
   initialNickname?: string;
 }
 
-const SUGGESTED_NICKNAMES = [
-  "Cazador de Fake News",
-  "Detector de Humo",
-  "Fiscal de Startups",
-  "Jurado Alpha",
-  "Auditor Viral",
-  "Perito IA",
-];
-
 export const GuestJoinModal: React.FC<GuestJoinModalProps> = ({
   isOpen,
   roomCode,
@@ -25,6 +17,16 @@ export const GuestJoinModal: React.FC<GuestJoinModalProps> = ({
   onConfirmNickname,
   initialNickname = "",
 }) => {
+  const { language } = useLanguage();
+  const isEs = language === "es";
+
+  const suggestedNicknames = useMemo(
+    () =>
+      isEs
+        ? ["Cazador de Fake News", "Detector de Humo", "Fiscal de Startups", "Jurado Alpha", "Auditor Viral", "Perito IA"]
+        : ["Fake News Hunter", "Smoke Detector", "Startup Prosecutor", "Alpha Juror", "Viral Auditor", "AI Expert"],
+    [isEs]
+  );
   const [nickname, setNickname] = useState(initialNickname);
 
   const dialogRef = React.useRef<HTMLDivElement>(null);
@@ -70,14 +72,16 @@ export const GuestJoinModal: React.FC<GuestJoinModalProps> = ({
           <div>
             <div className="flex flex-wrap items-center gap-2">
               <h3 id="guest-title" className="text-lg font-bold text-white tracking-tight">
-                Tu nombre en la sala
+                {isEs ? "Tu nombre en la sala" : "Your name in the room"}
               </h3>
               <span className="text-[10px] font-mono px-2 py-0.5 bg-purple-950/80 text-purple-300 border border-purple-800/60 rounded">
                 {roomCode}
               </span>
             </div>
             <p className="text-xs text-slate-400">
-              ¿Noticia real o puro marketing? Ingresa tu apodo para deliberar y votar con tus colegas.
+              {isEs
+                ? "¿Noticia real o puro marketing? Ingresa tu apodo para deliberar y votar con tus colegas."
+                : "Real news or pure hype? Enter your nickname to deliberate and vote with peers."}
             </p>
           </div>
         </div>
@@ -86,7 +90,7 @@ export const GuestJoinModal: React.FC<GuestJoinModalProps> = ({
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <label htmlFor="guest-nickname" className="block text-xs font-mono text-purple-300 uppercase tracking-wider">
-              Apodo visible para el jurado
+              {isEs ? "Apodo visible para el jurado" : "Nickname visible to jury"}
             </label>
             <div className="relative">
               <input
@@ -94,7 +98,7 @@ export const GuestJoinModal: React.FC<GuestJoinModalProps> = ({
                 type="text"
                 value={nickname}
                 onChange={(e) => setNickname(e.target.value)}
-                placeholder="Ej. Fiscal Cripto, Jurado Alpha..."
+                placeholder={isEs ? "Ej. Fiscal Cripto, Jurado Alpha..." : "E.g. Crypto Prosecutor, Alpha Juror..."}
                 autoFocus
                 maxLength={24}
                 className="w-full bg-slate-900/90 border border-purple-900/60 focus:border-purple-400 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-purple-400 transition"
@@ -107,10 +111,10 @@ export const GuestJoinModal: React.FC<GuestJoinModalProps> = ({
           <div className="space-y-1.5">
             <span className="text-[11px] text-slate-400 flex items-center gap-1">
               <Sparkles className="w-3 h-3 text-purple-400" />
-              Sugerencias rápidas:
+              {isEs ? "Sugerencias rápidas:" : "Quick suggestions:"}
             </span>
             <div className="flex flex-wrap gap-1.5">
-              {SUGGESTED_NICKNAMES.map((name) => (
+              {suggestedNicknames.map((name) => (
                 <button
                   key={name}
                   type="button"
@@ -131,8 +135,9 @@ export const GuestJoinModal: React.FC<GuestJoinModalProps> = ({
           <div className="p-3 bg-purple-950/30 border border-purple-900/40 rounded-xl flex items-start gap-2 text-[11px] text-slate-300">
             <Shield className="w-4 h-4 text-purple-400 shrink-0 mt-0.5" />
             <span>
-              Tu apodo será visible para el Host y los demás jurados en la sala
-              durante la votación y deliberación.
+              {isEs
+                ? "Tu apodo será visible para el Host y los demás jurados en la sala durante la votación y deliberación."
+                : "Your nickname will be visible to the Host and fellow jurors in the room during voting and deliberation."}
             </span>
           </div>
 
@@ -142,10 +147,16 @@ export const GuestJoinModal: React.FC<GuestJoinModalProps> = ({
             disabled={!nickname.trim()}
             className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold py-3 px-4 rounded-xl shadow-lg shadow-purple-900/40 flex items-center justify-center gap-2 transition active:scale-[0.99]"
           >
-            <span>{initialNickname ? "Guardar apodo" : "Entrar a la Sala como Jurado"}</span>
+            <span>
+              {initialNickname
+                ? (isEs ? "Guardar apodo" : "Save nickname")
+                : (isEs ? "Entrar a la Sala como Jurado" : "Join Room as Juror")}
+            </span>
             <ArrowRight className="w-4 h-4" />
           </button>
-          <button type="button" onClick={onCancel} className="w-full min-h-11 text-sm text-slate-400 hover:text-white">{initialNickname ? "Cancelar" : "Volver al inicio"}</button>
+          <button type="button" onClick={onCancel} className="w-full min-h-11 text-sm text-slate-400 hover:text-white">
+            {initialNickname ? (isEs ? "Cancelar" : "Cancel") : (isEs ? "Volver al inicio" : "Back to home")}
+          </button>
         </form>
       </div>
     </div>

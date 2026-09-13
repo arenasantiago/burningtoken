@@ -10,6 +10,11 @@ export interface ModelAssessment {
   summary: string;
 }
 
+interface TraceableAssessment {
+  assessment: "unassessed" | "supports" | "contradicts";
+  quote?: string;
+}
+
 function asRecord(value: unknown): Record<string, unknown> | undefined {
   return typeof value === "object" && value !== null && !Array.isArray(value)
     ? value as Record<string, unknown> : undefined;
@@ -31,7 +36,18 @@ export function parseNebiusResponse(value: unknown) {
   const content = Array.isArray(choices) ? asRecord(asRecord(choices[0])?.message)?.content : undefined;
   if (typeof content !== "string") return undefined;
   let parsed: Record<string, unknown> | undefined;
-  try { parsed = asRecord(JSON.parse(content)); } catch { return undefined; }
+  try {
+    let clean = content.trim();
+    if (clean.startsWith("```")) {
+      clean = clean.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "").trim();
+    }
+    const firstBrace = clean.indexOf("{");
+    const lastBrace = clean.lastIndexOf("}");
+    if (firstBrace !== -1 && lastBrace > firstBrace) {
+      clean = clean.slice(firstBrace, lastBrace + 1);
+    }
+    parsed = asRecord(JSON.parse(clean));
+  } catch { return undefined; }
   const verdicts: unknown[] = ["CERTIFIED_SMOKE", "PLAUSIBLE", "VERIFIED_LEGIT", "INSUFFICIENT_EVIDENCE"];
   if (!parsed || !verdicts.includes(parsed.verdict) || typeof parsed.summary !== "string" || !parsed.summary.trim()) return undefined;
   const insufficient = parsed.verdict === "INSUFFICIENT_EVIDENCE";
@@ -41,11 +57,26 @@ export function parseNebiusResponse(value: unknown) {
     assessment: {
       verdict: parsed.verdict as Verdict,
       ...(!insufficient ? { hypeScore: parsed.hypeScore as number } : {}),
-      summary: parsed.summary.trim(),
+      summary: parsed.summary.trim().slice(0, 500),
     } satisfies ModelAssessment,
     inputTokens: tokenCount(usage?.prompt_tokens),
     outputTokens: tokenCount(usage?.completion_tokens),
     evidenceAssessments: parsed.evidenceAssessments,
+  };
+}
+
+export function enforceTraceableVerdict(
+  assessment: ModelAssessment,
+  evidenceAssessments: TraceableAssessment[]
+): ModelAssessment {
+  if (assessment.verdict !== "CERTIFIED_SMOKE") return assessment;
+  const hasTraceableContradiction = evidenceAssessments.some(
+    (item) => item.assessment === "contradicts" && typeof item.quote === "string" && item.quote.trim().length >= 20
+  );
+  if (hasTraceableContradiction) return assessment;
+  return {
+    verdict: "INSUFFICIENT_EVIDENCE",
+    summary: "No hay una contradicción trazable suficiente para emitir un veredicto acusatorio. La ausencia de validación independiente no demuestra que la afirmación sea falsa.",
   };
 }
 

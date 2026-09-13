@@ -85,7 +85,7 @@ async function runAudit({ linkupKey = false, nebiusKey = false, claimText = "El 
         return "record-" + mutations.length;
       },
       runQuery: async (reference) => {
-        assert.equal(getFunctionName(reference), "evidence:listByInvestigation");
+        assert.equal(getFunctionName(reference), "evidence:listFullByInvestigation");
         return mutations.flatMap(({ name, args }, index) => name === "evidence:add" ? [{ ...args, _id: "record-" + (index + 1) }] : []);
       },
     }, {

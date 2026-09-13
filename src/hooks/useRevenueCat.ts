@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Purchases, type Package } from "@revenuecat/purchases-js";
+import { Purchases, PurchasesError, ErrorCode, type Package } from "@revenuecat/purchases-js";
 export function useRevenueCat(userId?: string) {
   const [selected, setSelected] = useState<Package | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -20,7 +20,16 @@ export function useRevenueCat(userId?: string) {
   }, [userId]);
   return { error, isConfigured: Boolean(selected), purchasePro: async () => {
     if (!selected || !userId) throw new Error(error || "Espera a que cargue Test Store.");
-    const result = await Purchases.getSharedInstance().purchase({ rcPackage: selected });
-    if (!result.customerInfo.entitlements.active.pro_auditor_access) throw new Error("La compra no activó el acceso Pro. Actualiza el estado de la suscripción.");
+    try {
+      const result = await Purchases.getSharedInstance().purchase({ rcPackage: selected });
+      if (!result.customerInfo.entitlements.active.pro_auditor_access) throw new Error("La compra no activó el acceso Pro. Actualiza el estado de la suscripción.");
+    } catch (cause) {
+      if (cause instanceof PurchasesError) {
+        throw new Error(cause.errorCode === ErrorCode.UserCancelledError
+          ? "Compra cancelada. Tu acceso no cambió."
+          : "La compra de prueba falló. Tu acceso no cambió; puedes intentarlo de nuevo.");
+      }
+      throw cause;
+    }
   }};
 }

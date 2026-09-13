@@ -1,7 +1,9 @@
 import { assertExecution } from "./lib/execution";
-import { internalMutation, mutation, query } from "./_generated/server";
+import { internalMutation, internalQuery, query } from "./_generated/server";
 import { v } from "convex/values";
 import { evidenceAssessmentValidator, evidenceSourceValidator } from "./auditValidators";
+import { sessionUserId } from "./lib/session";
+import { verifiedAccess } from "./lib/subscription";
 
 export const add = internalMutation({
   args: {
@@ -52,7 +54,7 @@ export const add = internalMutation({
   },
 });
 
-export const listByInvestigation = query({
+export const listFullByInvestigation = internalQuery({
   args: { investigationId: v.id("investigations") },
   handler: async (ctx, args) => {
     return await ctx.db
@@ -60,6 +62,43 @@ export const listByInvestigation = query({
       .withIndex("by_investigation", (q) => q.eq("investigationId", args.investigationId))
       .order("asc")
       .collect();
+  },
+});
+
+export const listByInvestigation = query({
+  args: { investigationId: v.id("investigations"), token: v.string() },
+  handler: async (ctx, args) => {
+    const userId = await sessionUserId(args.token);
+    const entitlement = await ctx.db
+      .query("userEntitlements")
+      .withIndex("by_user", (q) => q.eq("userId", userId))
+      .first();
+    const hasProAccess = verifiedAccess(entitlement);
+    const rows = await ctx.db
+      .query("evidence")
+      .withIndex("by_investigation", (q) => q.eq("investigationId", args.investigationId))
+      .order("asc")
+      .collect();
+
+    const totalByStep = {
+      initial_search: rows.filter((item) => item.step === "initial_search").length,
+      follow_up_contrast: rows.filter((item) => item.step === "follow_up_contrast").length,
+    };
+    if (hasProAccess) return { accessLevel: "pro" as const, items: rows, totalByStep };
+
+    const priority = (item: (typeof rows)[number]) =>
+      item.source === "linkup" && item.assessment !== "unassessed" && item.supportingQuote ? 0
+        : item.source === "linkup" ? 1 : 2;
+    const projectStep = (step: "initial_search" | "follow_up_contrast") => rows
+      .filter((item) => item.step === step)
+      .sort((left, right) => priority(left) - priority(right) || left.createdAt - right.createdAt)
+      .slice(0, 2);
+
+    return {
+      accessLevel: "free" as const,
+      items: [...projectStep("initial_search"), ...projectStep("follow_up_contrast")],
+      totalByStep,
+    };
   },
 });
 

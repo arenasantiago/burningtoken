@@ -107,6 +107,7 @@ export const triggerSimulatedFailure = mutation({
     const inv = await ctx.db.get(args.investigationId);
     if (!inv) throw new Error("Investigación inexistente.");
     await requireHost(ctx, inv.roomId, args.sessionToken);
+    if (inv.executionRoute === "convex_direct") throw new Error("La falla controlada sólo está disponible en la ruta Render.");
     if (!inv.executionToken || inv.currentStep === "completed" || inv.workflowStatus === "failed") throw new Error("No hay un workflow activo.");
     if (inv.currentStep === "nebius_synthesizing") throw new Error("La última etapa ya comenzó.");
     if (inv.failureConsumed || inv.failureRequested) return;
@@ -166,7 +167,10 @@ export const restart = internalMutation({
 
 export const getInternal = internalQuery({ args: { investigationId: v.id("investigations") }, handler: (ctx, args) => ctx.db.get(args.investigationId) });
 export const enqueue = internalMutation({
-  args: { roomId: v.id("rooms"), sessionToken: v.string(), executionToken: v.string(), proAccess: v.boolean() },
+  args: {
+    roomId: v.id("rooms"), sessionToken: v.string(), executionToken: v.string(), proAccess: v.boolean(),
+    executionRoute: v.union(v.literal("render"), v.literal("convex_direct")),
+  },
   handler: async (ctx, args) => {
     const room = await requireHost(ctx, args.roomId, args.sessionToken);
     if (!room.activeClaimId) throw new Error("No hay un caso activo.");
@@ -177,14 +181,42 @@ export const enqueue = internalMutation({
     if (previous) {
       if (previous.stageLease && (previous.stageLeaseUntil ?? 0) > Date.now()) throw new Error("Espera a que cierre la etapa anterior antes de reintentar.");
       id = previous._id;
-      await ctx.db.patch(id, { executionToken: args.executionToken, workflowStatus: "queued", workflowError: undefined, stageLease: undefined, stageLeaseUntil: undefined, workflowRunId: "pending", dispatchStartedAt: Date.now() });
+      await ctx.db.patch(id, {
+        executionToken: args.executionToken, workflowStatus: "queued", workflowError: undefined,
+        stageLease: undefined, stageLeaseUntil: undefined,
+        workflowRunId: args.executionRoute === "render" ? "pending" : "convex-direct",
+        executionRoute: args.executionRoute, proAccess: args.proAccess, dispatchStartedAt: Date.now(),
+      });
     } else {
-      id = await ctx.db.insert("investigations", { roomId: room._id, claimId: room.activeClaimId, workflowRunId: "pending", currentStep: "idle", progressPercentage: 0, simulatedFailureTriggered: false, retryCount: 0,
-        completedCheckpoints: [], executionToken: args.executionToken, workflowStatus: "queued", proAccess: args.proAccess, updatedAt: Date.now(), dispatchStartedAt: Date.now() });
+      id = await ctx.db.insert("investigations", { roomId: room._id, claimId: room.activeClaimId, workflowRunId: args.executionRoute === "render" ? "pending" : "convex-direct", currentStep: "idle", progressPercentage: 0, simulatedFailureTriggered: false, retryCount: 0,
+        completedCheckpoints: [], executionToken: args.executionToken, workflowStatus: "queued", proAccess: args.proAccess, executionRoute: args.executionRoute, updatedAt: Date.now(), dispatchStartedAt: Date.now() });
     }
     await ctx.db.patch(room._id, { status: "auditing" });
-    await ctx.scheduler.runAfter(0, internal.workflowDispatch.dispatch, { investigationId: id });
+    if (args.executionRoute === "render") await ctx.scheduler.runAfter(0, internal.workflowDispatch.dispatch, { investigationId: id });
+    else await ctx.scheduler.runAfter(0, internal.workflows.runDirect, { investigationId: id, executionToken: args.executionToken });
     return id;
+  },
+});
+
+export const activateDirectFallback = internalMutation({
+  args: { investigationId: v.id("investigations"), executionToken: v.string(), nextExecutionToken: v.string(), reason: v.string() },
+  handler: async (ctx, args) => {
+    const inv = await ctx.db.get(args.investigationId);
+    if (!inv || inv.executionToken !== args.executionToken || inv.currentStep === "completed") return;
+    await ctx.db.patch(inv._id, {
+      executionToken: args.nextExecutionToken,
+      executionRoute: "convex_direct",
+      workflowRunId: "convex-direct",
+      workflowStatus: "queued",
+      workflowError: args.reason,
+      stageLease: undefined,
+      stageLeaseUntil: undefined,
+      updatedAt: Date.now(),
+    });
+    await ctx.scheduler.runAfter(0, internal.workflows.runDirect, {
+      investigationId: inv._id,
+      executionToken: args.nextExecutionToken,
+    });
   },
 });
 export const setRun = internalMutation({
@@ -200,6 +232,7 @@ export const claimStage = internalMutation({
   handler: async (ctx, args) => {
     const inv = await ctx.db.get(args.investigationId);
     if (!inv || inv.executionToken !== args.executionToken || inv.workflowStatus === "failed") throw new Error("Ejecución inválida.");
+    if (inv.executionRoute === "convex_direct" && inv.failureRequested) throw new Error("La falla controlada sólo corresponde a la ruta Render.");
     if (inv.currentStep === "completed" || inv.completedCheckpoints?.includes(args.stage)) return { skip: true, fail: false };
     if (inv.stageLease && (inv.stageLeaseUntil ?? 0) > Date.now()) throw new Error("La etapa ya está en ejecución.");
     const prerequisite = args.stage === "contrast" ? "initial" : args.stage === "synthesis" ? "contrast" : null;

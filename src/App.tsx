@@ -17,7 +17,7 @@ import { Loader2, AlertTriangle } from "lucide-react";
 function getOrCreateVoterId(): string {
   let id = sessionStorage.getItem("tribunal_voter_id");
   if (!id) {
-    id = "voter_" + Math.random().toString(36).substring(2, 8);
+    id = "voter_" + Array.from(crypto.getRandomValues(new Uint8Array(16)), b => b.toString(16).padStart(2, "0")).join("");
     sessionStorage.setItem("tribunal_voter_id", id);
   }
   return id;
@@ -112,7 +112,7 @@ export function App() {
 
   const liveEvidence = useQuery(
     api.evidence.listByInvestigation,
-    investigation?._id ? { investigationId: investigation._id } : "skip"
+    investigation?._id ? { investigationId: investigation._id, token: purchaseToken } : "skip"
   );
 
   const proStatus = useQuery(api.entitlements.getStatus, { token: purchaseToken });
@@ -278,7 +278,7 @@ export function App() {
       setIsAuditingLocally(false);
     } catch (err) {
       auditPending.current = false;
-      setActionError("No pudimos iniciar Render. Comprueba su configuración y vuelve a intentar.");
+      setActionError("No pudimos iniciar la auditoría. Reintenta desde el último checkpoint.");
       setIsAuditingLocally(false);
     }
   };
@@ -330,6 +330,7 @@ export function App() {
         {/* Vista 1: Lobby Inicial */}
         {!activeRoomCode && (
           <RoomLobby
+            sessionToken={sessionToken}
             onCreateRoom={handleCreateRoom}
             onJoinRoom={handleJoinRoom}
           />
@@ -372,6 +373,7 @@ export function App() {
         {/* Vista 1.5: Sala en espera / Preparación del siguiente caso (Multijugador persistente) */}
         {activeRoomCode && room && room.status === "lobby" && (
           <InRoomLobby
+            sessionToken={sessionToken}
             roomCode={room.code}
             isHost={isHost}
             nickname={effectiveUserName}
@@ -425,11 +427,19 @@ export function App() {
               workflowStatus={investigation?.workflowStatus}
               workflowRunId={investigation?.workflowRunId}
               workflowError={investigation?.workflowError}
+              executionRoute={investigation?.executionRoute}
+              completedCheckpoints={investigation?.completedCheckpoints}
               failureRequested={investigation?.failureRequested}
               onRetry={handleLaunchInvestigation}
             />
-            {liveEvidence && liveEvidence.length > 0 && (
-              <EvidenceBoard evidenceList={liveEvidence} researchPlan={investigation?.researchPlan} />
+            {liveEvidence && liveEvidence.items.length > 0 && (
+              <EvidenceBoard
+                evidenceList={liveEvidence.items}
+                totalByStep={liveEvidence.totalByStep}
+                researchPlan={investigation?.researchPlan}
+                hasProAccess={liveEvidence.accessLevel === "pro"}
+                onOpenPaywall={() => setIsPaywallOpen(true)}
+              />
             )}
           </div>
         )}
@@ -454,8 +464,14 @@ export function App() {
               onLeaveRoom={handleLeaveRoom}
               onReauditClaim={handleLaunchNextClaim}
             />
-            {liveEvidence && liveEvidence.length > 0 && (
-              <EvidenceBoard evidenceList={liveEvidence} researchPlan={investigation?.researchPlan} />
+            {liveEvidence && liveEvidence.items.length > 0 && (
+              <EvidenceBoard
+                evidenceList={liveEvidence.items}
+                totalByStep={liveEvidence.totalByStep}
+                researchPlan={investigation?.researchPlan}
+                hasProAccess={liveEvidence.accessLevel === "pro"}
+                onOpenPaywall={() => setIsPaywallOpen(true)}
+              />
             )}
           </div>
         )}
@@ -480,6 +496,7 @@ export function App() {
         purchaseAvailable={revenueCat.isConfigured}
         setupError={revenueCat.error}
         purchaseToken={purchaseToken}
+        sessionToken={sessionToken}
         investigationId={investigation?.currentStep === "completed" ? investigation._id : undefined}
         claimText={activeClaim?.content}
       />

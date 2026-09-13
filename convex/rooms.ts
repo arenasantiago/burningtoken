@@ -1,11 +1,25 @@
 import { sessionUserId, requireHost } from "./lib/session";
 import { internalMutation, mutation, query } from "./_generated/server";
 import { v } from "convex/values";
+import { validateClaimText, validateNickname, validateRoomCode, validateRoomTitle } from "./lib/inputValidation";
 
-// Generar código legible estilo "HYPE-742"
+const ROOM_CODE_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+
 function generateRoomCode(): string {
-  const num = Math.floor(100 + Math.random() * 900);
-  return `HYPE-${num}`;
+  let suffix = "";
+  for (let index = 0; index < 6; index += 1) {
+    suffix += ROOM_CODE_ALPHABET[Math.floor(Math.random() * ROOM_CODE_ALPHABET.length)];
+  }
+  return `HYPE-${suffix}`;
+}
+
+async function availableRoomCode(ctx: any): Promise<string> {
+  for (let attempt = 0; attempt < 12; attempt += 1) {
+    const code = generateRoomCode();
+    const existing = await ctx.db.query("rooms").withIndex("by_code", (q: any) => q.eq("code", code)).first();
+    if (!existing) return code;
+  }
+  throw new Error("No pudimos reservar un código de sala. Intenta de nuevo.");
 }
 
 // Creación atómica de sala con su claim inicial
@@ -16,10 +30,12 @@ export const createWithClaim = mutation({
     claimText: v.string(),
   },
   handler: async (ctx, args) => {
-    const code = generateRoomCode();
+    const code = await availableRoomCode(ctx);
+    const title = validateRoomTitle(args.title);
+    const claimText = validateClaimText(args.claimText);
     const roomId = await ctx.db.insert("rooms", {
       code,
-      title: args.title,
+      title,
       hostUserId: await sessionUserId(args.sessionToken),
       status: "voting",
       createdAt: Date.now(),
@@ -28,7 +44,7 @@ export const createWithClaim = mutation({
     const claimId = await ctx.db.insert("claims", {
       roomId,
       authorName: "Host",
-      content: args.claimText,
+      content: claimText,
       createdAt: Date.now(),
     });
 
@@ -46,10 +62,11 @@ export const create = mutation({
     sessionToken: v.string(),
   },
   handler: async (ctx, args) => {
-    const code = generateRoomCode();
+    const code = await availableRoomCode(ctx);
+    const title = validateRoomTitle(args.title);
     const roomId = await ctx.db.insert("rooms", {
       code,
-      title: args.title,
+      title,
       hostUserId: await sessionUserId(args.sessionToken),
       status: "lobby",
       createdAt: Date.now(),
@@ -61,10 +78,7 @@ export const create = mutation({
 export const getByCode = query({
   args: { code: v.string() },
   handler: async (ctx, args) => {
-    let clean = args.code.toUpperCase().trim();
-    if (!clean.startsWith("HYPE-") && /^\d+$/.test(clean)) {
-      clean = `HYPE-${clean}`;
-    }
+    const clean = validateRoomCode(args.code);
     return await ctx.db
       .query("rooms")
       .withIndex("by_code", (q) => q.eq("code", clean))
@@ -133,10 +147,12 @@ export const startNextClaim = mutation({
   handler: async (ctx, args) => {
     const room = await requireHost(ctx, args.roomId, args.sessionToken);
     if (room.status !== "lobby" && room.status !== "verdict") throw new Error("Ya hay un caso activo.");
+    const claimText = validateClaimText(args.claimText);
+    const authorName = args.authorName ? validateNickname(args.authorName) : "Host";
     const claimId = await ctx.db.insert("claims", {
       roomId: args.roomId,
-      authorName: args.authorName || "Host",
-      content: args.claimText,
+      authorName,
+      content: claimText,
       createdAt: Date.now(),
     });
 
