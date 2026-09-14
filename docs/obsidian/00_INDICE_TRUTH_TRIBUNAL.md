@@ -29,18 +29,22 @@ flowchart TD
     I --> D[06 · Diseño y evolución]
     I --> P[07 · Cómo explicar el proyecto]
     I --> V[08 · Guion y checklist del video]
+    I --> B[09 · Briefing del proyecto]
+    I --> C[10 · Cierre y entrega final]
 ```
 
 ## Orden Recomendado
 
-1. [[07_COMO_EXPLICAR_EL_PROYECTO|Cómo explicar el proyecto]]: versión corta para conversación, pitch o jurado.
-2. [[01_ARQUITECTURA_Y_CONEXIONES|Arquitectura y conexiones]]: recorrido técnico de extremo a extremo.
-3. [[02_LOS_6_RETOS_SPONSORS|Los seis retos sponsors]]: requisito, código, evidencia y pendiente de cada sponsor.
-4. [[03_INTERFAZ_Y_SIGNIFICADO_DE_RESULTADOS|Interfaz y significado de resultados]]: qué representa cada pantalla y métrica.
-5. [[04_DEEP_SEARCH_Y_BOTON_FALLA_RENDER|Deep Search y falla controlada]]: investigación, checkpoints e idempotencia.
-6. [[05_NEBIUS_TOKEN_FACTORY_EN_DETALLE|Nebius Token Factory]]: inferencia, citas, tokens, latencia y límites.
-7. [[06_HOJA_DE_RUTA_MEJORA_ESTETICA|Diseño y evolución visual]]: decisiones ya materializadas y mejoras futuras.
-8. [[08_GUION_Y_CHECKLIST_DEL_VIDEO|Guion y checklist del video]]: preparación de la grabación final.
+1. [[10_CIERRE_Y_ENTREGA_FINAL|Cierre y entrega final]]: registro del video en X, formulario de entrega y estado de sponsors.
+2. [[07_COMO_EXPLICAR_EL_PROYECTO|Cómo explicar el proyecto]]: versión corta para conversación, pitch o jurado.
+3. [[01_ARQUITECTURA_Y_CONEXIONES|Arquitectura y conexiones]]: recorrido técnico de extremo a extremo.
+4. [[02_LOS_6_RETOS_SPONSORS|Los seis retos sponsors]]: requisito, código, evidencia y pendiente de cada sponsor.
+5. [[03_INTERFAZ_Y_SIGNIFICADO_DE_RESULTADOS|Interfaz y significado de resultados]]: qué representa cada pantalla y métrica.
+6. [[04_DEEP_SEARCH_Y_BOTON_FALLA_RENDER|Deep Search y falla controlada]]: investigación, checkpoints e idempotencia.
+7. [[05_NEBIUS_TOKEN_FACTORY_EN_DETALLE|Nebius Token Factory]]: inferencia, citas, tokens, latencia y límites.
+8. [[06_HOJA_DE_RUTA_MEJORA_ESTETICA|Diseño y evolución visual]]: decisiones ya materializadas y mejoras futuras.
+9. [[08_GUION_Y_CHECKLIST_DEL_VIDEO|Guion y checklist del video]]: preparación de la grabación final.
+10. [[09_BRIEFING_VIDEO_Y_PROYECTO|Briefing del video y proyecto]]: narrativa y analogías.
 
 ## Semáforo De Verdad
 
