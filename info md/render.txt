@@ -1,0 +1,31 @@
+## Workflows · Render
+
+Ejecutá un proceso útil en segundo plano, mostrá su progreso y recuperalo de una falla.
+
+- [Render · USD 50 en créditos](https://credits-portal-mmdm.onrender.com/claim/nerdconf): Hosting de aplicaciones. Créditos para construir durante Burning Token. Iniciá sesión con GitHub en la página de canje de Render.
+
+Canjeá los USD 50 para participantes antes de desplegar. Workflows consume cómputo facturable; revisá tu saldo y configuración.
+
+1. Seguí Your First Workflow para crear y ejecutar una tarea en TypeScript o Python.
+
+2. Encadená los pasos, registrá su estado y hacé accesible el resultado desde tu app.
+
+3. Provocá una falla controlada. Verificá los reintentos y evitá efectos duplicados en tu código.
+
+El workflow publicado se recupera de un paso fallido y devuelve un resultado sin acciones duplicadas.
+
+- [Tu primer workflow](https://render.com/docs/workflows-tutorial): Creá un proyecto inicial, desplegalo y ejecutá su primera tarea.
+
+- [Introducción a Workflows](https://render.com/docs/workflows): Entendé las tareas, la orquestación y cómo se cobra la ejecución.
+
+- [Tareas, reintentos y encadenamiento](https://render.com/docs/workflows-defining): Definí los reintentos y dividí el proceso en pasos útiles.
+
+- [Ejecutar desde tu app](https://render.com/docs/workflows-running): Iniciá tareas con el SDK o la API REST y recuperá sus resultados.
+
+- [Ejemplos de workflows en TypeScript](https://github.com/render-examples/render-workflows-examples-ts): Ejemplos oficiales para adaptar a tu proceso en segundo plano.
+
+- [Ejemplos de workflows en Python](https://github.com/render-examples/render-workflows-examples-python): Los ejemplos de Python si es tu stack preferido.
+
+- [MCP de Render y configuración del agente](https://render.com/docs/mcp-server): Inspeccioná servicios, deploys y logs. Usá el SDK o CLI de Workflows para ejecutar workflows.
+
+[Briefs actuales de los challenges](https://app.burningtoken.dev/dashboard/tracks)

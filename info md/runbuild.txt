@@ -1,0 +1,23 @@
+## Fun Build · NERDCONF
+
+Empezá con una interacción divertida que alguien pueda probar. Elegí el stack que quieras.
+
+No se exige integrar sponsors, IA ni herramientas pagas. Estos recursos son opcionales, no requisitos adicionales.
+
+1. Elegí una interacción sorprendente y prototipala con herramientas que conozcas.
+
+2. Dejá que alguien la pruebe. Ajustá el ritmo, el sonido y las respuestas que la hacen divertida.
+
+3. Compartí un build funcional y una demo corta. Indicá si requiere hardware específico.
+
+Alguien fuera de tu equipo puede abrirlo o instalarlo y entender la interacción sin una explicación larga.
+
+- [SlapMac · inspiración](https://slapmac.com/): La referencia lúdica del brief. Traé tu propia idea; no hace falta comprarla ni recrearla.
+
+- [p5.js · código creativo](https://p5js.org/tutorials/): Tutoriales opcionales para crear visuales interactivos en el navegador.
+
+- [Three.js · 3D interactivo](https://threejs.org/examples/): Explorá ejemplos de 3D si la interacción los necesita.
+
+- [Web Audio · sonido y respuestas](https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API): APIs de audio del navegador para interacciones con sonido.
+
+[Briefs actuales de los challenges](https://app.burningtoken.dev/dashboard/tracks)

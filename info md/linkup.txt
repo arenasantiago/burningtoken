@@ -1,0 +1,32 @@
+## Deep Research · Linkup
+
+Buscá, guardá evidencia y usala para decidir qué investigar después.
+
+El plan gratuito público de Linkup tiene condiciones de registro y uso. Revisá el precio vigente; es independiente de los créditos del evento.
+
+1. Creá una API key y hacé una búsqueda con el inicio rápido.
+
+2. Guardá fuentes y hallazgos en tu base de datos y hacé otra búsqueda según lo que falte.
+
+3. Usá los hallazgos para completar una tarea del usuario. Mostrá fuentes e incertidumbre en el resultado.
+
+La demo muestra hallazgos guardados, búsquedas de seguimiento y cómo la evidencia cambia el resultado. No es obligatorio usar el endpoint Research pago.
+
+- [Cuenta y API key](https://app.linkup.so): Creá una cuenta y obtené la clave para tu app.
+
+- [Inicio rápido de la API](https://docs.linkup.so/pages/documentation/get-started/quickstart): Hacé tu primera búsqueda web e inspeccioná la respuesta.
+
+- [SDK de TypeScript](https://docs.linkup.so/pages/sdk/js/js): Integrá Linkup en el flujo de investigación de tu producto.
+
+- [Plan gratuito y precios](https://docs.linkup.so/pages/documentation/platform/pricing): Revisá las condiciones de registro y el costo del modo de búsqueda que elijas.
+
+- [MCP de Linkup](https://docs.linkup.so/pages/integrations/mcp/mcp): Dale a tu agente búsqueda y recuperación web. Requiere una API key de Linkup.
+
+- [Skill oficial de Linkup](https://docs.linkup.so/pages/integrations/linkup-skill): Enseñale al agente cómo investigar. La skill necesita el MCP o SDK para acceder a Linkup.
+
+
+```sh
+npx skills add LinkupPlatform/skills
+```
+
+[Briefs actuales de los challenges](https://app.burningtoken.dev/dashboard/tracks)

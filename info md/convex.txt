@@ -1,0 +1,29 @@
+## Multiplayer · Convex
+
+Construí datos compartidos que se actualicen en dos sesiones y publicá el frontend en convex.site.
+
+Convex tiene un plan gratuito público. Los límites aplican por equipo; revisalos antes de sumar funciones de alto consumo.
+
+1. Seguí el inicio rápido de React para conectar el frontend a un proyecto de Convex.
+
+2. Guardá el estado compartido en Convex. Abrí dos sesiones y verificá los cambios sin refrescar.
+
+3. Seguí la guía de Static Hosting para publicar un build estático en convex.site. Las funciones renderizadas en servidor requieren otra arquitectura.
+
+Una acción útil en una sesión actualiza la otra. El frontend es accesible en convex.site.
+
+- [Dashboard de Convex](https://dashboard.convex.dev): Creá un proyecto e inspeccioná sus datos y funciones.
+
+- [Inicio rápido con React](https://docs.convex.dev/quickstart/react): Una app pequeña de React + Vite con una consulta reactiva.
+
+- [Static Hosting · convex.site](https://www.convex.dev/components/static-hosting): El componente de hosting que pide Multiplayer. Incluye la guía de integración.
+
+- [Catálogo de componentes](https://www.convex.dev/components): Componentes de backend reutilizables. Sumá los que necesite tu función principal.
+
+- [Plan gratuito y límites](https://docs.convex.dev/production/state/limits): Revisá las cuotas del equipo antes de planear almacenamiento y tráfico.
+
+- [MCP de Convex](https://docs.convex.dev/ai/convex-mcp-server): Permití que tu agente inspeccione un entorno de desarrollo, sus datos y funciones.
+
+- [Skills oficiales para agentes](https://docs.convex.dev/ai/agent-skills): Guías para diseñar esquemas, autenticación y desarrollar con Convex.
+
+[Briefs actuales de los challenges](https://app.burningtoken.dev/dashboard/tracks)

@@ -1,0 +1,27 @@
+## Applied AI · Nebius
+
+Usá Token Factory para una tarea concreta y medí la calidad, el tiempo o el costo del resultado.
+
+- [Nebius · USD 25 Token Factory](https://dev.nebius.com/builders?utm_source=hackathon&utm_medium=qrcode&utm_campaign=26Q3_DV-DV_NB_EVT_AWR_VA_NA_Burning-Token-Hackathon-SF): Inferencia de IA. Registrate en el Builder Program desde el enlace de Burning Token y seguí sus pasos de canje.
+
+Canjeá tus USD 25 en créditos desde el enlace de Nebius de arriba y creá tu API key de Token Factory.
+
+1. Probá un modelo en el playground y hacé una llamada a la API compatible con OpenAI.
+
+2. Conectá la inferencia al flujo principal del producto y guardá la API key en el servidor.
+
+3. Probá entradas representativas y registrá precisión, tiempo o costo por tarea. Incluí un caso que falle.
+
+Alguien puede usar la herramienta publicada; la demo incluye resultados medidos y una limitación clara.
+
+- [Playground y API key](https://tokenfactory.nebius.com): Compará modelos y obtené las credenciales para tu app.
+
+- [Inicio rápido de Token Factory](https://docs.tokenfactory.nebius.com/quickstart): Primera llamada de inferencia con Python, JavaScript o cURL.
+
+- [Cookbook oficial y apps de ejemplo](https://github.com/nebius/token-factory-cookbook): Puntos de partida para agentes, RAG, uso de herramientas y aplicaciones.
+
+- [Guía de inferencia](https://docs.tokenfactory.nebius.com/ai-models-inference/overview): Entendé las opciones de inferencia antes de decidir cómo usar el modelo.
+
+- [Índice de documentación para tu agente](https://docs.tokenfactory.nebius.com/llms.txt): Un índice legible por agentes con guías oficiales y documentación de la API.
+
+[Briefs actuales de los challenges](https://app.burningtoken.dev/dashboard/tracks)

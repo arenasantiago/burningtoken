@@ -1,0 +1,27 @@
+## Subscriptions · RevenueCat
+
+Agregá una función paga a tu app. Probá que una compra le dé acceso al usuario.
+
+Empezá con una cuenta de RevenueCat y Test Store. Este challenge acepta compras de prueba; no exige ingresos reales.
+
+1. Elegí tu plataforma e instalá su SDK de RevenueCat.
+
+2. Creá un producto para vender. Creá un entitlement: un permiso para usar una función paga. Agrupá los productos en una offering. Usá el permiso para controlar el acceso.
+
+3. Probá una compra exitosa, una falla y el acceso vencido; identificá las transacciones de prueba en la demo.
+
+Un juez puede probar el producto antes y después de una compra de prueba y ver el cambio de acceso.
+
+- [Cuenta y dashboard](https://app.revenuecat.com): Creá tu proyecto y administrá productos, ofertas y clientes.
+
+- [Inicio rápido del SDK](https://www.revenuecat.com/docs/getting-started/quickstart): Configurá el SDK, identificá al usuario y verificá su acceso.
+
+- [Integración web](https://www.revenuecat.com/docs/web/payment-integrations): Elegí la integración de cobros para un producto web.
+
+- [Test Store](https://www.revenuecat.com/docs/test-and-launch/sandbox/test-store): Probá compras y entitlements sin configurar primero una tienda. Revisá la compatibilidad del SDK.
+
+- [Pruebas en sandbox](https://www.revenuecat.com/docs/test-and-launch/sandbox): Pruebas por plataforma para verificar la integración con la tienda.
+
+- [MCP y toolkit de IA oficiales](https://www.revenuecat.com/docs/tools/mcp/setup): Conectá tu agente a RevenueCat. Elegí los permisos de acceso al configurarlo.
+
+[Briefs actuales de los challenges](https://app.burningtoken.dev/dashboard/tracks)
