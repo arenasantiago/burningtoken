@@ -12,6 +12,7 @@ import type * as actions from "../actions.js";
 import type * as aiLimits from "../aiLimits.js";
 import type * as auditValidators from "../auditValidators.js";
 import type * as claims from "../claims.js";
+import type * as dashboard from "../dashboard.js";
 import type * as entitlements from "../entitlements.js";
 import type * as evidence from "../evidence.js";
 import type * as investigations from "../investigations.js";
@@ -39,6 +40,7 @@ declare const fullApi: ApiFromModules<{
   aiLimits: typeof aiLimits;
   auditValidators: typeof auditValidators;
   claims: typeof claims;
+  dashboard: typeof dashboard;
   entitlements: typeof entitlements;
   evidence: typeof evidence;
   investigations: typeof investigations;
